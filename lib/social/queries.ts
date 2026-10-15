@@ -9,6 +9,7 @@ import type {
   PublicPost,
   SocialCreator,
 } from "./types";
+import { photoJson } from "@/lib/media/lifecycle";
 const pageResult = <T>(items: T[], page: number, size = 10) => ({
   items: items.slice(0, size),
   page,
@@ -16,7 +17,7 @@ const pageResult = <T>(items: T[], page: number, size = 10) => ({
 });
 const creatorJson = sql`json_build_object('username',cp.username,'displayName',cp.display_name,'theme',cp.theme,'avatar',cp.avatar)`;
 function postJson(viewer: number | null) {
-  return sql`json_build_object('id',p.id,'title',p.title,'body',p.body,'publishedAt',p.published_at at time zone 'UTC','creator',${creatorJson},'mine',coalesce(cp.user_id=${viewer},false),
+  return sql`json_build_object('id',p.id,'title',p.title,'body',p.body,'photos',${photoJson},'publishedAt',p.published_at at time zone 'UTC','creator',${creatorJson},'mine',coalesce(cp.user_id=${viewer},false),
  'liked',exists(select 1 from post_likes l where l.post_id=p.id and l.user_id=${viewer}),
  'saved',exists(select 1 from saved_posts s where s.post_id=p.id and s.user_id=${viewer}),
  'likes',(select count(*)::int from post_likes l where l.post_id=p.id and ${memberActive(sql`l.user_id`)} and ${noBlock(sql`l.user_id`, sql`cp.user_id`)}),
@@ -97,7 +98,7 @@ export async function ownPosts(userId: number, page: number) {
     sql`select cp.username,(cp.moderation_status='approved' and not cp.listing_rejected and cp.visibility<>'hidden') as eligible from creator_profiles cp where cp.user_id=${userId}`,
   );
   const posts = await db.execute<OwnPost>(
-    sql`select p.id,p.title,p.body,p.status,p.revision,p.moderation_reason as "moderationReason",p.updated_at as "updatedAt",p.published_at as "publishedAt" from social_posts p join creator_profiles cp on cp.id=p.profile_id where cp.user_id=${userId} and p.deleted_at is null order by p.updated_at desc,p.id desc limit 11 offset ${(page - 1) * 10}`,
+    sql`select p.id,p.title,p.body,p.status,p.revision,p.moderation_reason as "moderationReason",p.updated_at as "updatedAt",p.published_at as "publishedAt",${photoJson} as photos from social_posts p join creator_profiles cp on cp.id=p.profile_id where cp.user_id=${userId} and p.deleted_at is null order by p.updated_at desc,p.id desc limit 11 offset ${(page - 1) * 10}`,
   );
   return { ...pageResult([...posts], page), creator: creator[0] || null };
 }

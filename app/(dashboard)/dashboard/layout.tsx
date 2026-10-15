@@ -15,7 +15,7 @@ import {
 
 const items = [
   { href: "/dashboard", label: "My space", icon: LayoutDashboard },
-  { href: "/dashboard/posts", label: "Text posts", icon: PenLine },
+  { href: "/dashboard/posts", label: "My posts", icon: PenLine },
   { href: "/dashboard/creator-space", label: "My Creator Space", icon: Heart },
   { href: "/dashboard/safety", label: "Community Safety", icon: LockKeyhole },
   { href: "/dashboard/general", label: "Edit profile", icon: PenLine },

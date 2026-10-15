@@ -25,6 +25,12 @@ import {
 import { socialInput } from "./validation";
 import type { z } from "zod";
 
+import {
+  photoSnapshot,
+  resetPhotos,
+  reviewPhotos,
+} from "@/lib/media/lifecycle";
+
 export async function mutateSocial(
   userId: number,
   data: z.infer<typeof socialInput>,
@@ -154,6 +160,7 @@ export async function mutateSocial(
           "A removed post cannot be edited or resubmitted. Request a review in Social Activity.",
         );
       if (data.action === "submit_post") {
+        await reviewPhotos(tx, post.id, false);
         if (!["draft", "rejected"].includes(post.status))
           throw new HttpError(
             409,
@@ -189,10 +196,12 @@ export async function mutateSocial(
             title: post.title,
             body: post.body,
             revision: post.revision + 1,
+            photos: await photoSnapshot(tx, post.id),
           },
         });
         return { message: "Post submitted for moderation." };
       }
+      await resetPhotos(tx, post.id);
       await tx
         .update(posts)
         .set({
@@ -431,6 +440,7 @@ export async function mutateSocial(
           title: post.title,
           body: post.body,
           revision: post.revision,
+          photos: await photoSnapshot(tx, post.id),
         };
       } else {
         const [comment] = await tx

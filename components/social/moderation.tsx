@@ -4,9 +4,12 @@ import useSWR from "swr";
 import { safetyRequest } from "@/components/safety/request";
 import { useSocialAction } from "./actions";
 import { SocialFeedback, SocialPages } from "./primitives";
+import { PhotoGallery } from "@/components/media/gallery";
+import type { Photo } from "@/lib/media/types";
 type Kind = "posts" | "comments" | "reports" | "appeals";
 type Item = {
   id: number;
+  photos?: Photo[];
   title?: string;
   body?: string;
   username?: string;
@@ -23,7 +26,7 @@ type Item = {
   snapshot?: Record<string, unknown>;
 };
 const tabs = {
-  posts: "Text post review",
+  posts: "Post review",
   comments: "Comment moderation",
   reports: "Content reports",
   appeals: "Content review requests",
@@ -49,6 +52,12 @@ export function SocialModeration() {
         <div>
           <p className="eyebrow">CARE FOR THE CONVERSATION</p>
           <h2>Post & comment moderation</h2>
+          <p className="creator-help">
+            Review all text and photos. Human approval is mandatory; never
+            approve explicit, exploitative, non-consensual or privacy-violating
+            content. Production photos also require a passing configured
+            scanner. Development previews are not content-scanned.
+          </p>
         </div>
       </div>
       <nav className="category-filters" aria-label="Social moderation queues">
@@ -107,6 +116,10 @@ export function SocialModeration() {
             </h3>
             {item.username && <p>@{item.username}</p>}
             {item.body && <p className="creator-text">{item.body}</p>}
+            <PhotoGallery photos={item.photos} preview />
+            {Array.isArray(item.snapshot?.photos) && (
+              <PhotoGallery photos={item.snapshot.photos as Photo[]} preview />
+            )}
             {item.reason && <p className="creator-text">{item.reason}</p>}
             {item.explanation && (
               <p className="creator-text">{item.explanation}</p>
@@ -120,7 +133,11 @@ export function SocialModeration() {
             {item.snapshot && (
               <details>
                 <summary>Reported content / decision snapshot</summary>
-                <pre className="audit-snapshot">
+                <pre
+                  className="audit-snapshot"
+                  tabIndex={0}
+                  aria-label="Content evidence snapshot"
+                >
                   {JSON.stringify(item.snapshot, null, 2)}
                 </pre>
               </details>
@@ -224,14 +241,15 @@ export function SocialModeration() {
                             className="mimi-button primary small"
                             disabled={action.busy}
                           >
-                            Approve text post
+                            Approve {item.photos?.length ? "photo" : "text"}{" "}
+                            post
                           </button>
                           <button
                             value="reject_post"
                             className="mimi-button secondary small"
                             disabled={action.busy}
                           >
-                            Reject text post
+                            Reject {item.photos?.length ? "photo" : "text"} post
                           </button>
                         </>
                       )}
@@ -241,7 +259,7 @@ export function SocialModeration() {
                           className="mimi-button secondary small"
                           disabled={action.busy}
                         >
-                          Remove text post
+                          Remove {item.photos?.length ? "photo" : "text"} post
                         </button>
                       ) : (
                         <button

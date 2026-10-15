@@ -11,6 +11,7 @@ import {
   boolean,
   index,
   primaryKey,
+  uuid,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import type {
@@ -443,6 +444,77 @@ export const socialAppeals = pgTable(
   (t) => [
     index('social_appeals_queue').on(t.status, t.id),
     check('social_appeal_status', sql`${t.status} in ('open','reviewed')`),
+  ],
+);
+
+export const mediaAssets = pgTable(
+  'media_assets',
+  {
+    id: uuid('id').primaryKey(),
+    ownerId: integer('owner_id')
+      .notNull()
+      .references(() => users.id),
+    postId: integer('post_id')
+      .notNull()
+      .references(() => socialPosts.id),
+    position: integer('position').notNull(),
+    description: varchar('description', { length: 300 }).notNull(),
+    state: varchar('state', { length: 20 })
+      .$type<'reserved' | 'processing' | 'ready' | 'failed' | 'purged'>()
+      .notNull()
+      .default('reserved'),
+    moderation: varchar('moderation', { length: 20 })
+      .$type<'pending' | 'approved' | 'rejected' | 'removed'>()
+      .notNull()
+      .default('pending'),
+    approvedRevision: integer('approved_revision'),
+    scanStatus: varchar('scan_status', { length: 30 })
+      .$type<
+        | 'not_scanned'
+        | 'development_manual'
+        | 'passed'
+        | 'rejected'
+        | 'unavailable'
+      >()
+      .notNull()
+      .default('not_scanned'),
+    scanPolicy: varchar('scan_policy', { length: 120 }),
+    displayKey: text('display_key').notNull().unique(),
+    thumbnailKey: text('thumbnail_key').notNull().unique(),
+    storageDriver: varchar('storage_driver', { length: 10 })
+      .$type<'local' | 's3'>()
+      .notNull(),
+    uploadTokenHash: varchar('upload_token_hash', { length: 64 }).notNull(),
+    uploadExpiresAt: timestamp('upload_expires_at').notNull(),
+    storageBytes: integer('storage_bytes').notNull().default(10485760),
+    width: integer('width'),
+    height: integer('height'),
+    sha256: varchar('sha256', { length: 64 }),
+    error: varchar('error', { length: 300 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at'),
+    purgedAt: timestamp('purged_at'),
+  },
+  (t) => [
+    index('media_owner_quota').on(t.ownerId, t.state),
+    index('media_post_order').on(t.postId, t.position),
+    index('media_cleanup').on(t.state, t.uploadExpiresAt),
+    check('media_position', sql`${t.position} between 0 and 4`),
+    check(
+      'media_state',
+      sql`${t.state} in ('reserved','processing','ready','failed','purged')`,
+    ),
+    check(
+      'media_moderation',
+      sql`${t.moderation} in ('pending','approved','rejected','removed')`,
+    ),
+    check(
+      'media_scan',
+      sql`${t.scanStatus} in ('not_scanned','development_manual','passed','rejected','unavailable')`,
+    ),
+    check('media_driver', sql`${t.storageDriver} in ('local','s3')`),
+    check('media_size', sql`${t.storageBytes} between 0 and 10485760`),
   ],
 );
 

@@ -13,7 +13,7 @@ export const memberActive = (id: number | SQL) =>
   sql`exists(select 1 from users mu where mu.id=${id} and mu.deleted_at is null) and not exists(select 1 from creator_profiles ms where ms.user_id=${id} and ms.moderation_status='suspended')`;
 export const creatorEligible = sql`u.deleted_at is null and cp.visibility <> 'hidden' and cp.moderation_status='approved' and not cp.listing_rejected`;
 export const postVisible = (viewer: number | null) =>
-  sql`p.status='published' and p.deleted_at is null and ${creatorEligible} and ${noBlock(viewer, sql`cp.user_id`)}`;
+  sql`p.status='published' and p.deleted_at is null and not exists(select 1 from media_assets vm where vm.post_id=p.id and vm.deleted_at is null and (vm.state<>'ready' or (vm.scan_status<>'passed' and not (vm.scan_status='development_manual' and vm.storage_driver='local')) or vm.moderation<>'approved' or vm.approved_revision is distinct from p.revision)) and ${creatorEligible} and ${noBlock(viewer, sql`cp.user_id`)}`;
 export async function assertActive(userId: number, tx: Connection = db) {
   const rows = await tx.execute(
     sql`select id from users where id=${userId} and ${memberActive(userId)} for share`,

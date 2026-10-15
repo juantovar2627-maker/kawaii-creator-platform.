@@ -12,13 +12,13 @@ export default function CreatorToolsPage() {
         description="A little room for your next idea. Start with a draft; there’s no rush to be ready."
       />
       <div className="creator-policy-note">
-        <strong>Ready for a real text post?</strong>
+        <strong>Ready for a real creator post?</strong>
         <p>
-          Your text studio saves drafts to PostgreSQL and sends submissions to
-          staff review.
+          Your post studio saves drafts and optional private photos, then sends
+          the full version to staff review.
         </p>
         <Link className="mimi-button primary" href="/dashboard/posts">
-          Open real text studio
+          Open real post studio
         </Link>
       </div>
       <CreatorStudio />

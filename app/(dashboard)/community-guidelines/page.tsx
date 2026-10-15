@@ -16,7 +16,7 @@ const promises = [
   {
     title: "Boundaries come first.",
     icon: UserRoundCheck,
-    text: "Share only content you own or have permission to use. Respect privacy and consent. This is a non-explicit community; explicit sexual content is not part of this space.",
+    text: "Share only content you own or have permission to use, including consent from people shown. Never expose addresses, IDs, intimate images, or other private information without permission. This is a non-explicit community: no sexual or exploitative content. Photos involving minors require appropriate consent and must never be sexualized. Report suspected exploitation; do not download or redistribute it.",
   },
   {
     title: "Make room for a safer space.",
