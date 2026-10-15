@@ -1,4 +1,17 @@
-# Next.js SaaS Starter
+# Mimi — a little more you
+
+Phase 1 transforms the Next.js SaaS Starter into a non-explicit creator-community
+frontend with original pastel illustrations, discovery, creator profiles,
+feeds, and a personal account space. Read [the Phase 1 guide](docs/phase-one.md)
+for routes, working interactions, demo-data boundaries and remaining backend work.
+The temporary brand lives in `lib/brand.ts`.
+
+Authentication, PostgreSQL, account settings, and payment-disabled safeguards
+are retained. No schema migration or deployment is part of this transformation.
+Social content is fictional and clearly labeled; local demo interactions do not
+change real public accounts. Payments remain disabled.
+
+## Starter foundation
 
 This is a starter template for building a SaaS application using **Next.js** with support for authentication, Stripe integration for payments, and a dashboard for logged-in users.
 
