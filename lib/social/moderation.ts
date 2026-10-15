@@ -15,6 +15,8 @@ import { creatorEligible, lockPost, memberActive, noBlock } from "./access";
 import { socialAdminInput, socialAdminQuery } from "./validation";
 import type { z } from "zod";
 
+import { photoJson, photoSnapshot, reviewPhotos } from "@/lib/media/lifecycle";
+
 export async function getSocialQueue(q: z.infer<typeof socialAdminQuery>) {
   const offset = (q.page - 1) * 10;
   let items;
@@ -24,7 +26,7 @@ export async function getSocialQueue(q: z.infer<typeof socialAdminQuery>) {
     )
       throw new HttpError(400, "Invalid post status.");
     items = await db.execute(
-      sql`select p.id,p.title,p.body,p.status,p.revision,p.moderation_reason as "moderationReason",p.updated_at as "createdAt",cp.username from social_posts p join creator_profiles cp on cp.id=p.profile_id where p.deleted_at is null and p.status<>'draft' and ${q.status === "all" ? sql`true` : sql`p.status=${q.status}`} order by p.updated_at desc,p.id desc limit 11 offset ${offset}`,
+      sql`select p.id,p.title,p.body,${photoJson} as photos,p.status,p.revision,p.moderation_reason as "moderationReason",p.updated_at as "createdAt",cp.username from social_posts p join creator_profiles cp on cp.id=p.profile_id where p.deleted_at is null and p.status<>'draft' and ${q.status === "all" ? sql`true` : sql`p.status=${q.status}`} order by p.updated_at desc,p.id desc limit 11 offset ${offset}`,
     );
   } else if (q.kind === "comments") {
     if (!["all", "visible", "removed"].includes(q.status))
@@ -226,6 +228,7 @@ export async function moderateSocial(
     if (data.action === "restore_post" && post.status !== "removed")
       throw new HttpError(409, "Only removed posts can be restored.");
     if (data.action === "approve_post") {
+      await reviewPhotos(tx, post.id, true);
       const eligible = await tx.execute(
         sql`select cp.id from creator_profiles cp join users u on u.id=cp.user_id where cp.id=${profile.id} and ${creatorEligible} for share of u`,
       );
@@ -253,6 +256,9 @@ export async function moderateSocial(
         revision: post.revision + 1,
       })
       .where(eq(posts.id, post.id));
+    await tx.execute(
+      sql`update media_assets set moderation=${status === "published" ? "approved" : status === "rejected" ? "rejected" : status === "removed" ? "removed" : "pending"},approved_revision=${status === "published" ? post.revision + 1 : null},updated_at=now() where post_id=${post.id} and deleted_at is null`,
+    );
     const names = {
       approve_post: "post_approved",
       reject_post: "post_rejected",
@@ -273,6 +279,7 @@ export async function moderateSocial(
         body: post.body,
         previousStatus: post.status,
         revision: post.revision,
+        photos: await photoSnapshot(tx, post.id),
       },
     });
     return {

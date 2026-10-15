@@ -1,4 +1,71 @@
 @import "tailwindcss";
+
+.photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.photo-gallery.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+.mimi-photo {
+  margin: 0;
+  overflow: hidden;
+  background: #fff7fb;
+  border: 1px solid #eaddec;
+  border-radius: 1.2rem;
+}
+.mimi-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 38rem;
+  object-fit: contain;
+}
+.mimi-photo figcaption {
+  padding: 0.8rem;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.mimi-photo figcaption span {
+  display: block;
+  color: #705877;
+  margin-top: 0.3rem;
+}
+.photo-unavailable {
+  padding: 1rem;
+  background: #fff7fb;
+  border: 1px dashed #ad849e;
+  border-radius: 1rem;
+  overflow-wrap: anywhere;
+}
+.photo-editor {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #fff9fc;
+  border: 1px solid #eaddec;
+  border-radius: 1.2rem;
+}
+.photo-editor summary {
+  cursor: pointer;
+  color: #794369;
+  font-weight: 700;
+}
+.photo-controls {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid #eaddec;
+}
+.photo-editor progress {
+  display: block;
+  width: 100%;
+  accent-color: #b95488;
+}
+@media (max-width: 480px) {
+  .photo-gallery {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 @import "tw-animate-css";
 
 @theme inline {

@@ -9,6 +9,7 @@ import { SocialFeedback, SocialIdentity, SocialPages } from "./primitives";
 import { RealComments } from "./comments";
 import { ContentReport } from "./report";
 import type { Page, PublicPost } from "@/lib/social/types";
+import { PhotoGallery } from "@/components/media/gallery";
 function RealPostCard({ post }: { post: PublicPost }) {
   const { data: user } = useSWR("/api/user");
   const [comments, setComments] = useState(false);
@@ -17,13 +18,16 @@ function RealPostCard({ post }: { post: PublicPost }) {
     <article className="real-post-card" id={`real-post-${post.id}`}>
       <div className="real-post-header">
         <SocialIdentity creator={post.creator} />
-        <span className="category-tag">Community post · text</span>
+        <span className="category-tag">
+          Community post · {post.photos?.length ? "photos" : "text"}
+        </span>
       </div>
       <time dateTime={post.publishedAt}>
         {new Date(post.publishedAt).toLocaleString()}
       </time>
       {post.title && <h3>{post.title}</h3>}
       <p className="real-post-body creator-text">{post.body}</p>
+      <PhotoGallery photos={post.photos} />
       <div className="real-post-actions">
         <button
           className="social-action-button"
@@ -149,7 +153,7 @@ export function RealFeed({
           <p>
             {scope === "saved"
               ? "Save a real post to keep it here across devices. Unavailable posts stay hidden."
-              : "Approved text posts from eligible creators will appear here. Demo content, where shown, is labeled separately."}
+              : "Approved text and photo posts from eligible creators will appear here. Demo content, where shown, is labeled separately."}
           </p>
           <Link
             className="text-link"

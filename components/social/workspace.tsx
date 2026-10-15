@@ -6,6 +6,7 @@ import { safetyRequest } from "@/components/safety/request";
 import { useSocialAction } from "./actions";
 import { SocialFeedback, SocialPages } from "./primitives";
 import type { OwnPost, Page } from "@/lib/social/types";
+import { PhotoEditor } from "@/components/media/editor";
 export function PostWorkspace() {
   const [page, setPage] = useState(1);
   const { data, error } = useSWR<
@@ -22,7 +23,7 @@ export function PostWorkspace() {
   };
   return (
     <>
-      {!data && !error && <p role="status">Opening your text studio…</p>}
+      {!data && !error && <p role="status">Opening your post studio…</p>}
       <SocialFeedback
         message={action.message}
         error={action.error || error?.message}
@@ -44,13 +45,13 @@ export function PostWorkspace() {
             <section className="account-panel">
               <h2>
                 {editing
-                  ? "Edit your text post"
+                  ? "Edit your creator post"
                   : "A little note to your community"}
               </h2>
               <p className="creator-help">
-                Plain text only. Editing a published or pending post withdraws
-                it to a draft. Every new version needs fresh staff approval;
-                removed posts require a review request.
+                Text with optional photos. Editing a published or pending post
+                withdraws it to a draft. Every new version needs fresh staff
+                approval; removed posts require a review request.
               </p>
               {!data.creator?.eligible && (
                 <p className="creator-policy-note">
@@ -93,7 +94,8 @@ export function PostWorkspace() {
                   rows={7}
                 />
                 <span className="creator-help">
-                  {body.length}/4000 characters · no uploads or embeds
+                  {body.length}/4000 characters · add photos to a saved draft
+                  below
                 </span>
                 <button className="mimi-button primary" disabled={action.busy}>
                   {editing ? "Save edited draft" : "Save real draft"}
@@ -111,7 +113,7 @@ export function PostWorkspace() {
             </section>
             <section
               className="own-post-list"
-              aria-label="Your real text posts"
+              aria-label="Your real creator posts"
             >
               <h2>Your drafts and submissions</h2>
               {data.items.length === 0 && (
@@ -124,6 +126,7 @@ export function PostWorkspace() {
                   <span className="category-tag">{post.status}</span>
                   <h3>{post.title || "Untitled note"}</h3>
                   <p className="creator-text">{post.body}</p>
+                  <PhotoEditor post={post} />
                   {post.moderationReason && (
                     <p className="creator-policy-note">
                       <strong>Moderator response:</strong>{" "}
@@ -190,7 +193,7 @@ export function PostWorkspace() {
               page={page}
               hasMore={data.hasMore}
               change={setPage}
-              label="Your text post pages"
+              label="Your creator post pages"
             />
           </>
         )

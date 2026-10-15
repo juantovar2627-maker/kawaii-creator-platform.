@@ -25,9 +25,10 @@ export function CreatorStudio() {
   return (
     <>
       <DemoNotice>
-        These photo/video demo drafts stay on this device. Media publishing,
-        uploads, and memberships are unavailable. Use the real text studio above
-        for account-backed drafts and reviewed text posts.
+        These photo/video demo drafts stay on this device. Uploads and
+        publishing are unavailable in this demo. Use the real post studio above
+        for account-backed text and photos with staff review. Video uploads and
+        memberships remain unavailable.
       </DemoNotice>
       <form
         className="studio-form account-panel"
@@ -73,7 +74,9 @@ export function CreatorStudio() {
         <div className="studio-upload">
           <ImagePlus size={27} aria-hidden="true" />
           <strong>A place for your creative world</strong>
-          <span>Photo and video uploads are a future feature.</span>
+          <span>
+            Demo placeholder · real photos belong in the post studio above.
+          </span>
         </div>
         <label htmlFor="draft-caption">Tell a little story</label>
         <textarea

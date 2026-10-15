@@ -10,6 +10,10 @@ blocks, review requests, and a documented manual staff provisioning process.
 [Phase 2C](docs/phase-two-c.md) adds real follows, reviewed text posts, comments,
 likes, private saved posts, and post/comment moderation. Demo interactions remain
 separate. The temporary brand lives in `lib/brand.ts`.
+[Phase 3A](docs/phase-three-a.md) adds private photo uploads, secure image
+processing, protected galleries and revision-checked photo review. Production
+photo approval requires a configured scanner plus human moderation; local
+development uses explicitly unscanned, manually reviewed fixtures.
 
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
 are retained. Apply the additive migrations with `pnpm db:migrate` against your

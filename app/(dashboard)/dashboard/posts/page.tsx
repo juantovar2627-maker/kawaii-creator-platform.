@@ -3,7 +3,7 @@ import { getUser } from "@/lib/db/queries";
 import { PageIntro } from "@/components/community/primitives";
 import { PostWorkspace } from "@/components/social/workspace";
 export const metadata = {
-  title: "Your real text posts",
+  title: "Your real creator posts",
   robots: { index: false, follow: false },
 };
 export default async function PostsPage() {
@@ -13,7 +13,7 @@ export default async function PostsPage() {
       <PageIntro
         eyebrow="WORDS WITH A LITTLE HEART"
         title="Your words, your little world."
-        description="Real text posts, saved drafts, and a thoughtful review before anything goes public."
+        description="Text, optional photos, saved drafts, and a thoughtful review before anything goes public."
       />
       <PostWorkspace />
     </>
