@@ -8,6 +8,7 @@ import {
 import { getUser } from "@/lib/db/queries";
 import { getOwnCreator } from "@/lib/creators/queries";
 import { creatorInputSchema } from "@/lib/creators/validation";
+import { audit } from "@/lib/moderation/audit";
 
 export const runtime = "nodejs";
 const reply = (body: unknown, status = 200, headers = {}) =>
@@ -95,25 +96,63 @@ async function mutate(request: NextRequest, create: boolean) {
   const { communityAccepted, ...input } = parsed.data;
 
   try {
-    if (create) {
-      await db.insert(profiles).values({ ...input, userId: user.id });
-    } else {
-      // The owner always comes from the verified session, never from input.
-      // Content changes invalidate any prior discovery approval atomically.
-      // Suspended profiles cannot lift their suspension through editing.
-      const changed = await db
-        .update(profiles)
-        .set({
-          ...input,
-          updatedAt: new Date(),
-          moderationStatus: sql`case when ${profiles.moderationStatus} = 'suspended' then 'suspended' else 'pending' end`,
-        })
-        .where(eq(profiles.userId, user.id))
-        .returning({ username: profiles.username });
-      if (!changed.length)
-        return reply({ error: "Set up your own creator profile first." }, 404);
-    }
-    return reply({ profile: await getOwnCreator(user.id) }, create ? 201 : 200);
+    await db.transaction(async (tx) => {
+      if (create) {
+        const [created] = await tx
+          .insert(profiles)
+          .values({ ...input, userId: user.id })
+          .returning();
+        await audit(tx, {
+          actorId: user.id,
+          actorRole: "member",
+          action: "profile_created",
+          entityType: "profile",
+          entityId: created.id,
+          profileId: created.id,
+          reason: "Creator opted into a profile.",
+          snapshot: {
+            username: created.username,
+            visibility: created.visibility,
+            revision: created.revision,
+          },
+        });
+      } else {
+        // The owner always comes from the verified session, never from input.
+        // Content changes invalidate any prior discovery approval atomically.
+        // Suspended profiles cannot lift their suspension through editing.
+        const changed = await tx
+          .update(profiles)
+          .set({
+            ...input,
+            updatedAt: new Date(),
+            moderationStatus: sql`case when ${profiles.moderationStatus} = 'suspended' then 'suspended' else 'pending' end`,
+            listingRejected: false,
+            moderationReason: sql`case when ${profiles.moderationStatus} = 'suspended' then ${profiles.moderationReason} else '' end`,
+            revision: sql`${profiles.revision} + 1`,
+          })
+          .where(eq(profiles.userId, user.id))
+          .returning({ id: profiles.id, revision: profiles.revision });
+        if (!changed.length) return;
+        await audit(tx, {
+          actorId: user.id,
+          actorRole: "member",
+          action: "profile_edited",
+          entityType: "profile",
+          entityId: changed[0].id,
+          profileId: changed[0].id,
+          reason: "Creator edited profile; discovery approval requires review.",
+          snapshot: {
+            username: input.username,
+            visibility: input.visibility,
+            revision: changed[0].revision,
+          },
+        });
+      }
+    });
+    const profile = await getOwnCreator(user.id);
+    if (!profile)
+      return reply({ error: "Set up your own creator profile first." }, 404);
+    return reply({ profile }, create ? 201 : 200);
   } catch (error) {
     // Drizzle wraps PostgreSQL errors; inspect only the code, never echo SQL.
     const failure = error as { code?: string; cause?: { code?: string } };

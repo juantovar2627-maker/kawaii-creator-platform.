@@ -8,6 +8,9 @@ import {
   jsonb,
   uniqueIndex,
   check,
+  boolean,
+  index,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import type {
@@ -73,6 +76,9 @@ export const creatorProfiles = pgTable(
       .defaultNow(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    revision: integer('revision').notNull().default(1),
+    listingRejected: boolean('listing_rejected').notNull().default(false),
+    moderationReason: text('moderation_reason').notNull().default(''),
   },
   (table) => [
     uniqueIndex('creator_profiles_username_lower_unique').on(
@@ -102,6 +108,12 @@ export const creatorProfiles = pgTable(
       'creator_banner',
       sql`${table.banner} in ('blossom', 'daydream', 'sunrise')`,
     ),
+    index('creator_listing_queue').on(
+      table.moderationStatus,
+      table.visibility,
+      table.listingRejected,
+      table.id,
+    ),
   ],
 );
 
@@ -113,6 +125,148 @@ export const creatorMutationLimits = pgTable('creator_mutation_limits', {
   windowStartedAt: timestamp('window_started_at').notNull().defaultNow(),
   attempts: integer('attempts').notNull().default(1),
 });
+
+// Platform staff are independent of SaaS team/user roles. Only the trusted
+// database operator provisioning script writes this table; no public role API.
+export const platformStaff = pgTable(
+  'platform_staff',
+  {
+    userId: integer('user_id')
+      .primaryKey()
+      .references(() => users.id),
+    role: varchar('role', { length: 20 })
+      .$type<'admin' | 'moderator'>()
+      .notNull(),
+    active: boolean('active').notNull().default(true),
+    grantedAt: timestamp('granted_at').notNull().defaultNow(),
+  },
+  (t) => [
+    check('platform_staff_role', sql`${t.role} in ('admin', 'moderator')`),
+  ],
+);
+
+export const profileReports = pgTable(
+  'profile_reports',
+  {
+    id: serial('id').primaryKey(),
+    reporterId: integer('reporter_id')
+      .notNull()
+      .references(() => users.id),
+    profileId: integer('profile_id')
+      .notNull()
+      .references(() => creatorProfiles.id),
+    targetUsername: varchar('target_username', { length: 30 }).notNull(),
+    reason: varchar('reason', { length: 40 }).notNull(),
+    explanation: text('explanation').notNull().default(''),
+    snapshot: jsonb('snapshot')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    status: varchar('status', { length: 20 })
+      .$type<'open' | 'resolved' | 'dismissed'>()
+      .notNull()
+      .default('open'),
+    resolution: text('resolution').notNull().default(''),
+    reviewedBy: integer('reviewed_by').references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    reviewedAt: timestamp('reviewed_at'),
+  },
+  (t) => [
+    uniqueIndex('one_open_report_per_member_profile')
+      .on(t.reporterId, t.profileId)
+      .where(sql`${t.status} = 'open'`),
+    index('reports_queue').on(t.status, t.id),
+    check(
+      'report_status',
+      sql`${t.status} in ('open', 'resolved', 'dismissed')`,
+    ),
+  ],
+);
+
+export const moderationAudit = pgTable(
+  'moderation_audit',
+  {
+    id: serial('id').primaryKey(),
+    actorId: integer('actor_id').references(() => users.id),
+    actorRole: varchar('actor_role', { length: 20 }).notNull(),
+    action: varchar('action', { length: 50 }).notNull(),
+    entityType: varchar('entity_type', { length: 20 }).notNull(),
+    entityId: integer('entity_id').notNull(),
+    profileId: integer('profile_id').references(() => creatorProfiles.id),
+    reason: text('reason').notNull(),
+    internalNote: text('internal_note').notNull().default(''),
+    snapshot: jsonb('snapshot')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [index('audit_profile_history').on(t.profileId, t.id)],
+);
+
+export const moderationAppeals = pgTable(
+  'moderation_appeals',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    profileId: integer('profile_id')
+      .notNull()
+      .references(() => creatorProfiles.id),
+    decisionId: integer('decision_id')
+      .notNull()
+      .unique()
+      .references(() => moderationAudit.id),
+    explanation: text('explanation').notNull(),
+    status: varchar('status', { length: 20 })
+      .$type<'open' | 'reviewed'>()
+      .notNull()
+      .default('open'),
+    resolution: text('resolution').notNull().default(''),
+    reviewedBy: integer('reviewed_by').references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    reviewedAt: timestamp('reviewed_at'),
+  },
+  (t) => [
+    index('appeals_queue').on(t.status, t.id),
+    check('appeal_status', sql`${t.status} in ('open', 'reviewed')`),
+  ],
+);
+
+export const accountBlocks = pgTable(
+  'account_blocks',
+  {
+    id: serial('id').primaryKey(),
+    blockerId: integer('blocker_id')
+      .notNull()
+      .references(() => users.id),
+    blockedId: integer('blocked_id')
+      .notNull()
+      .references(() => users.id),
+    targetUsername: varchar('target_username', { length: 30 }).notNull(),
+    targetDisplayName: varchar('target_display_name', { length: 80 }).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('unique_account_block').on(t.blockerId, t.blockedId),
+    index('blocks_target').on(t.blockedId),
+    check('no_self_block', sql`${t.blockerId} <> ${t.blockedId}`),
+  ],
+);
+
+export const safetyRateLimits = pgTable(
+  'safety_rate_limits',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    scope: varchar('scope', { length: 20 }).notNull(),
+    startedAt: timestamp('started_at').notNull().defaultNow(),
+    attempts: integer('attempts').notNull().default(1),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.scope] })],
+);
 
 export const teams = pgTable('teams', {
   id: serial('id').primaryKey(),

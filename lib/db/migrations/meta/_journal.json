@@ -15,6 +15,20 @@
       "when": 1792044758571,
       "tag": "0001_flowery_skullbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792046452999,
+      "tag": "0002_robust_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792046694173,
+      "tag": "0003_brainy_ricochet",
+      "breakpoints": true
     }
   ]
 }
