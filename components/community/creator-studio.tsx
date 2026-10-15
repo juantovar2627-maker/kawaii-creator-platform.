@@ -27,8 +27,8 @@ export function CreatorStudio() {
       <DemoNotice>
         These photo/video demo drafts stay on this device. Uploads and
         publishing are unavailable in this demo. Use the real post studio above
-        for account-backed text and photos with staff review. Video uploads and
-        memberships remain unavailable.
+        for account-backed text, photos and short videos with staff review.
+        Memberships remain unavailable.
       </DemoNotice>
       <form
         className="studio-form account-panel"

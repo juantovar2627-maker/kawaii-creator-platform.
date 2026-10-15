@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { cleanupMedia } from "../lib/media/cleanup";
 import { client } from "../lib/db/drizzle";
+import { cleanupVideos, cleanupVideoWork } from "../lib/video/cleanup";
 async function main() {
   try {
     if (
@@ -11,7 +12,11 @@ async function main() {
     )
       throw new Error("Use --dry-run (default) or --apply.");
     console.log(
-      JSON.stringify(await cleanupMedia(process.argv.includes("--apply"))),
+      JSON.stringify({
+        ...(await cleanupMedia(process.argv.includes("--apply"))),
+        videos: await cleanupVideos(process.argv.includes("--apply")),
+        work: await cleanupVideoWork(process.argv.includes("--apply")),
+      }),
     );
   } catch {
     console.error(

@@ -3381,3 +3381,59 @@ h3 {
     flex-wrap: wrap;
   }
 }
+
+.mimi-video {
+  margin: 1rem 0;
+  overflow: hidden;
+  border-radius: 1.2rem;
+  border: 1px solid #eaddec;
+  background: #fff7fb;
+}
+.mimi-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 38rem;
+  background: #231a2c;
+  object-fit: contain;
+}
+.mimi-video figcaption {
+  padding: 1rem;
+  overflow-wrap: anywhere;
+}
+.video-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #705877;
+}
+.video-editor {
+  margin: 1rem 0;
+  padding: 1rem;
+  border: 1px solid #eaddec;
+  border-radius: 1.2rem;
+  background: #fff9fc;
+}
+.video-editor summary {
+  cursor: pointer;
+  color: #794369;
+  font-weight: 700;
+}
+.video-editor progress {
+  display: block;
+  width: 100%;
+  accent-color: #b95488;
+}
+.video-status {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #f9effb;
+  color: #65426d;
+  overflow-wrap: anywhere;
+}
+.video-status .text-link {
+  margin-left: 0.5rem;
+}

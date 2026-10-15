@@ -13,7 +13,7 @@ export default async function PostsPage() {
       <PageIntro
         eyebrow="WORDS WITH A LITTLE HEART"
         title="Your words, your little world."
-        description="Text, optional photos, saved drafts, and a thoughtful review before anything goes public."
+        description="Text, optional photos or short videos, saved drafts, and a thoughtful review before anything goes public."
       />
       <PostWorkspace />
     </>
