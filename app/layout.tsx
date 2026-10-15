@@ -1,45 +1,49 @@
-import './globals.css';
-import type { Metadata, Viewport } from 'next';
-import { Manrope } from 'next/font/google';
-import { getUser, getTeamForUser } from '@/lib/db/queries';
-import { SWRConfig } from 'swr';
-import { PaymentsProvider } from '@/components/payments-provider';
-import { isPaymentsEnabled } from '@/lib/payments/config';
+import "./globals.css";
+import type { Metadata, Viewport } from "next";
+import { Manrope } from "next/font/google";
+import { getUser, getTeamForUser } from "@/lib/db/queries";
+import { SWRConfig } from "swr";
+import { PaymentsProvider } from "@/components/payments-provider";
+import { isPaymentsEnabled } from "@/lib/payments/config";
+import { DemoProvider } from "@/components/community/demo-provider";
+import { brand } from "@/lib/brand";
+import { publicUser } from "@/lib/auth/public-user";
 
 export const metadata: Metadata = {
-  title: 'Next.js SaaS Starter',
-  description: 'Get started quickly with Next.js, Postgres, and Stripe.'
+  title: {
+    default: `${brand.name} — ${brand.tagline}`,
+    template: `%s · ${brand.name}`,
+  },
+  description: brand.description,
 };
 
 export const viewport: Viewport = {
-  maximumScale: 1
+  width: "device-width",
+  initialScale: 1,
 };
 
-const manrope = Manrope({ subsets: ['latin'] });
+const manrope = Manrope({ subsets: ["latin"] });
 
 export default function RootLayout({
-  children
+  children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`bg-white dark:bg-gray-950 text-black dark:text-white ${manrope.className}`}
-    >
-      <body className="min-h-[100dvh] bg-gray-50">
+    <html lang="en" className={manrope.className}>
+      <body>
         <SWRConfig
           value={{
             fallback: {
               // We do NOT await here
               // Only components that read this data will suspend
-              '/api/user': getUser(),
-              '/api/team': getTeamForUser()
-            }
+              "/api/user": getUser().then(publicUser),
+              "/api/team": getTeamForUser(),
+            },
           }}
         >
           <PaymentsProvider enabled={isPaymentsEnabled()}>
-            {children}
+            <DemoProvider>{children}</DemoProvider>
           </PaymentsProvider>
         </SWRConfig>
       </body>
