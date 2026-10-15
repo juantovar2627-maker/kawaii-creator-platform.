@@ -45,7 +45,8 @@ export type PublicCreator = {
 };
 export type OwnCreator = PublicCreator & {
   visibility: Visibility;
-  moderationStatus: "pending" | "approved" | "suspended";
+  moderationStatus: "pending" | "approved" | "rejected" | "suspended";
+  moderationReason: string;
   createdAt: string;
   updatedAt: string;
 };

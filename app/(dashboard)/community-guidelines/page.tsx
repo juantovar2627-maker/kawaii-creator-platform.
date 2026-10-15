@@ -21,7 +21,7 @@ const promises = [
   {
     title: "Make room for a safer space.",
     icon: ShieldCheck,
-    text: "Use the menu on a post or creator to preview reporting and blocking. In Phase 1, blocks hide demo content only in this browser and report drafts are not submitted or monitored. Real reporting, review, appeals, and enforcement need a moderation backend.",
+    text: "Sign in to report or block a real creator from their profile. Reports are saved for moderator review; account blocks persist across devices and hide signed-in creator surfaces, while public information remains accessible anonymously. Review your reports, blocks, creator decisions, and requests for another review in Community Safety. Fictional demo reports and blocks stay separate in this browser.",
   },
 ];
 export default function GuidelinesPage() {

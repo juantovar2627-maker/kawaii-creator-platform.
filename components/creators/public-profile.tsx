@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowUpRight, Heart, ShieldCheck } from "lucide-react";
 import { avatars, themes, type PublicCreator } from "@/lib/creators/presets";
+import { RealSafetyActions } from '@/components/safety/real-actions';
 
 export function PresetAvatar({ creator }: { creator: PublicCreator }) {
   return (
@@ -131,6 +132,7 @@ export function RealCreatorProfile({
           </p>
         )}
       </div>
+      {!preview && <RealSafetyActions username={creator.username} />}
       <div className="feed-layout profile-content-layout">
         <section className="account-panel creator-empty">
           <span className="empty-flower" aria-hidden="true">

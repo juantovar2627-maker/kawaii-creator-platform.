@@ -36,3 +36,12 @@ Edits revoke approval, and profile mutations cannot remove a suspension.
 There is no staff review API yet. See [Phase 2A](phase-two-a.md) for the exact
 visibility contract and remaining moderation work before discovery rollout.
 The demo report/block controls have no authority over real profiles.
+
+## Implemented in Phase 2B
+
+The real safety backend now lives in `lib/moderation` with a protected
+`/admin/moderation` dashboard and `/dashboard/safety` member history. It adds manual
+platform staff provisioning, creator decisions/audits, private reports with
+snapshots, persistent account blocks, and owner review requests. Demo controls
+remain separate. The earlier Phase 1/2A notes above describe their historical
+boundaries; [Phase 2B](phase-two-b.md) is the current behavior and operating guide.

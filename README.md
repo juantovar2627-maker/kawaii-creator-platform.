@@ -5,10 +5,12 @@ with pastel illustrations, discovery, feeds, and a personal account space.
 [Phase 2A](docs/phase-two-a.md) adds opt-in PostgreSQL creator profiles,
 owner-only editing, public link access, and moderation-gated discovery.
 The [Phase 1 guide](docs/phase-one.md) describes the original frontend and demo interactions.
+[Phase 2B](docs/phase-two-b.md) adds restricted moderation, real reports, account
+blocks, review requests, and a documented manual staff provisioning process.
 The temporary brand lives in `lib/brand.ts`.
 
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
-are retained. Apply the additive migration with `pnpm db:migrate` against your
+are retained. Apply the additive migrations with `pnpm db:migrate` against your
 development database. Creator profiles are real; the six fictional creators and
 social interactions remain clearly separated demos. Payments remain disabled.
 

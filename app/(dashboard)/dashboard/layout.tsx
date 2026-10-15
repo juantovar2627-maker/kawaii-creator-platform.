@@ -16,6 +16,7 @@ import {
 const items = [
   { href: "/dashboard", label: "My space", icon: LayoutDashboard },
   { href: "/dashboard/creator-space", label: "My Creator Space", icon: Heart },
+  { href: "/dashboard/safety", label: "Community Safety", icon: LockKeyhole },
   { href: "/dashboard/general", label: "Edit profile", icon: PenLine },
   { href: "/dashboard/saved", label: "Saved posts", icon: Bookmark },
   { href: "/dashboard/creator-tools", label: "Creator studio", icon: Sparkles },

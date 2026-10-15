@@ -72,8 +72,8 @@ export function CreatorProfileEditor({
           <p>
             New profiles are unlisted: anyone with your link can visit, but you
             won’t appear in Discover. Hide your profile at any time. Discovery
-            requests require moderation approval; review tools are coming in
-            Phase 2B.
+            requests require moderator approval. Decisions and requests for
+            another review are available in Community Safety.
           </p>
         </div>
         {profile?.moderationStatus === "suspended" && (
@@ -81,6 +81,23 @@ export function CreatorProfileEditor({
             Your public profile is unavailable following a moderation
             restriction. Editing cannot remove this restriction.
           </p>
+        )}
+        {profile && (
+          <div className="creator-policy-note">
+            <strong>Moderation status: {profile.moderationStatus}</strong>
+            {profile.moderationReason && (
+              <p className="creator-text">{profile.moderationReason}</p>
+            )}
+            <Link className="text-link" href="/dashboard/safety">
+              Decision history and review requests ↗
+            </Link>
+            {profile.moderationStatus === "rejected" && (
+              <p>
+                Edit your profile to address the reason and submit it for review
+                again.
+              </p>
+            )}
+          </div>
         )}
         <form className="studio-form creator-editor" onSubmit={submit}>
           <fieldset disabled={busy}>
@@ -305,8 +322,8 @@ export function CreatorProfileEditor({
               {profile.visibility === "listed" &&
                 profile.moderationStatus === "pending" && (
                   <p>
-                    Discovery request pending. Review tooling is not available
-                    yet.
+                    Discovery request pending. A moderator will review your
+                    saved profile before it appears in Discover.
                   </p>
                 )}
               <p className="creator-help">

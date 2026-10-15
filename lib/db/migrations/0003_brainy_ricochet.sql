@@ -1,0 +1,2 @@
+ALTER TABLE "profile_reports" ADD COLUMN "snapshot" jsonb DEFAULT '{}'::jsonb NOT NULL;--> statement-breakpoint
+CREATE INDEX "creator_listing_queue" ON "creator_profiles" USING btree ("moderation_status","visibility","listing_rejected","id");

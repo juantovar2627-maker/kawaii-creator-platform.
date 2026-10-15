@@ -450,6 +450,7 @@ test(
       if (ids.length)
         await sql.begin(async (tx) => {
           await tx`delete from creator_mutation_limits where user_id in ${tx(ids)}`;
+          await tx`delete from moderation_audit where profile_id in (select id from creator_profiles where user_id in ${tx(ids)})`;
           await tx`delete from creator_profiles where user_id in ${tx(ids)}`;
           await tx`delete from users where id in ${tx(ids)}`;
         });
