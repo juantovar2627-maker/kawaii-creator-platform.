@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight, Heart, ShieldCheck } from "lucide-react";
 import { avatars, themes, type PublicCreator } from "@/lib/creators/presets";
-import { RealSafetyActions } from '@/components/safety/real-actions';
+import { RealFeed } from "@/components/social/feed";
+import { RealFollow } from "@/components/social/follow";
+import { RealSafetyActions } from "@/components/safety/real-actions";
 
 export function PresetAvatar({ creator }: { creator: PublicCreator }) {
   return (
@@ -91,9 +93,7 @@ export function RealCreatorProfile({
       </div>
       <div className="profile-identity">
         <PresetAvatar creator={creator} />
-        <button className="mimi-button secondary" disabled>
-          Following coming later
-        </button>
+        {!preview && <RealFollow username={creator.username} />}
       </div>
       <div className="profile-main">
         <h1>{creator.displayName}</h1>
@@ -134,20 +134,13 @@ export function RealCreatorProfile({
       </div>
       {!preview && <RealSafetyActions username={creator.username} />}
       <div className="feed-layout profile-content-layout">
-        <section className="account-panel creator-empty">
-          <span className="empty-flower" aria-hidden="true">
-            ✿
-          </span>
-          <h2>A little beginning.</h2>
-          <p>
-            This is a real creator profile. Public posts, uploads, comments,
-            messages, and follower counts are not available yet.
-          </p>
-          <Link href="/community-guidelines" className="text-link">
-            Our non-explicit community rules
-            <ArrowUpRight size={14} aria-hidden="true" />
-          </Link>
-        </section>
+        <div className="feed-content">
+          <RealFeed
+            scope="creator"
+            username={creator.username}
+            title="Little notes from this creator"
+          />
+        </div>
         <aside className="feed-aside">
           <div className="membership-card">
             <Heart size={26} aria-hidden="true" />

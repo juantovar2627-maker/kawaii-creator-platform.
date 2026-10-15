@@ -45,3 +45,10 @@ platform staff provisioning, creator decisions/audits, private reports with
 snapshots, persistent account blocks, and owner review requests. Demo controls
 remain separate. The earlier Phase 1/2A notes above describe their historical
 boundaries; [Phase 2B](phase-two-b.md) is the current behavior and operating guide.
+
+## Phase 2C content moderation
+
+Real text posts, comments, content reports and content review requests now extend
+this backend. Staff queues remain under `/admin/moderation`; member content history
+is under `/dashboard/safety`. See [Phase 2C](phase-two-c.md) for lifecycle, visibility,
+blocking and operating boundaries. No media uploads or messaging are enabled.

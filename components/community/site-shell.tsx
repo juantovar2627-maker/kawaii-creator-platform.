@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import {
   ArrowUpRight,
   Bell,
@@ -84,8 +84,7 @@ function AccountMenu() {
           <DropdownMenuItem
             onSelect={async () => {
               await signOut();
-              await mutate("/api/user");
-              await mutate("/api/team");
+              // The refreshed server identity creates a fresh account cache.
               router.push("/");
               router.refresh();
             }}

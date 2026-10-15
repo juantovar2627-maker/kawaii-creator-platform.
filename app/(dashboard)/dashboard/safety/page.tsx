@@ -1,3 +1,4 @@
+import { SocialActivity } from "@/components/social/activity";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/db/queries";
@@ -27,6 +28,7 @@ export default async function SafetyPage() {
         }
       />
       <AccountSafety />
+      <SocialActivity />
     </>
   );
 }

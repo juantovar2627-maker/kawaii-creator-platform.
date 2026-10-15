@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { reportReasons } from "@/lib/moderation/validation";
 import { safetyRequest } from "./request";
 
 export function RealSafetyActions({ username }: { username: string }) {
   const { data: user } = useSWR("/api/user");
+  const { mutate } = useSWRConfig();
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -20,6 +21,9 @@ export function RealSafetyActions({ username }: { username: string }) {
       const result = await safetyRequest("/api/safety", body);
       setMessage(result.message);
       if (block) {
+        await mutate(
+          (key) => typeof key === "string" && key.startsWith("/api/social"),
+        );
         router.push("/dashboard/safety");
         router.refresh();
       }

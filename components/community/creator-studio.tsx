@@ -25,8 +25,9 @@ export function CreatorStudio() {
   return (
     <>
       <DemoNotice>
-        Drafts are saved only on this device, not to your account. Uploads,
-        public publishing, and memberships are not connected yet.
+        These photo/video demo drafts stay on this device. Media publishing,
+        uploads, and memberships are unavailable. Use the real text studio above
+        for account-backed drafts and reviewed text posts.
       </DemoNotice>
       <form
         className="studio-form account-panel"
