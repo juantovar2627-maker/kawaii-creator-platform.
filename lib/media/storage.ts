@@ -43,7 +43,7 @@ export function storage(): Storage {
         "Configure MEDIA_LOCAL_ROOT as a private absolute directory outside the repository.",
       );
     const path = (key: string) => {
-      if (!/^[a-f0-9]{64}\.webp$/.test(key))
+      if (!/^[a-f0-9]{64}\.(webp|mp4|bin)$/.test(key))
         throw new Error("Invalid internal object key");
       return join(root, key);
     };
@@ -73,33 +73,7 @@ export function storage(): Storage {
     process.env.MEDIA_S3_ACCESS_KEY_ID &&
     process.env.MEDIA_S3_SECRET_ACCESS_KEY
   ) {
-    let endpoint: URL;
-    try {
-      endpoint = new URL(process.env.MEDIA_S3_ENDPOINT);
-    } catch {
-      throw new HttpError(
-        503,
-        "Configure a valid private storage HTTPS endpoint.",
-      );
-    }
-    if (
-      endpoint.protocol !== "https:" ||
-      endpoint.username ||
-      endpoint.password
-    )
-      throw new HttpError(503, "Private storage requires an HTTPS endpoint.");
-    const bucket = process.env.MEDIA_S3_BUCKET;
-    const client = new S3Client({
-      endpoint: endpoint.toString(),
-      region: process.env.MEDIA_S3_REGION,
-      credentials: {
-        accessKeyId: process.env.MEDIA_S3_ACCESS_KEY_ID,
-        secretAccessKey: process.env.MEDIA_S3_SECRET_ACCESS_KEY,
-      },
-      forcePathStyle: true,
-      maxAttempts: 2,
-      requestHandler: { connectionTimeout: 5000, requestTimeout: 15000 },
-    });
+    const { client, bucket } = s3Context();
     return {
       driver,
       async put(key, bytes) {
@@ -137,6 +111,54 @@ export function storage(): Storage {
   }
   throw new HttpError(
     503,
-    "Photo storage is unavailable. Configure private S3/R2 storage, or the documented local development adapter. Text posts still work.",
+    "Private media storage is unavailable. Configure private S3/R2 storage, or the documented local development adapter. Text posts still work.",
   );
+}
+
+export function s3Context() {
+  if (
+    !process.env.MEDIA_S3_ENDPOINT ||
+    !process.env.MEDIA_S3_REGION ||
+    !process.env.MEDIA_S3_BUCKET ||
+    !process.env.MEDIA_S3_ACCESS_KEY_ID ||
+    !process.env.MEDIA_S3_SECRET_ACCESS_KEY
+  )
+    throw new HttpError(
+      503,
+      "Private video storage is unavailable. Configure the documented private S3/R2 adapter.",
+    );
+  let endpoint: URL;
+  try {
+    endpoint = new URL(process.env.MEDIA_S3_ENDPOINT);
+  } catch {
+    throw new HttpError(
+      503,
+      "Configure a valid private storage HTTPS endpoint.",
+    );
+  }
+  if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password)
+    throw new HttpError(503, "Private storage requires an HTTPS endpoint.");
+  const bucket = process.env.MEDIA_S3_BUCKET;
+  const client = new S3Client({
+    endpoint: endpoint.toString(),
+    region: process.env.MEDIA_S3_REGION,
+    credentials: {
+      accessKeyId: process.env.MEDIA_S3_ACCESS_KEY_ID,
+      secretAccessKey: process.env.MEDIA_S3_SECRET_ACCESS_KEY,
+    },
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
+    forcePathStyle: true,
+    maxAttempts: 2,
+    requestHandler: { connectionTimeout: 5000, requestTimeout: 15000 },
+  });
+
+  return { client, bucket };
+}
+
+export function localObjectPath(key: string) {
+  if (!localDevelopment() || !/^[a-f0-9]{64}\.(webp|mp4|bin)$/.test(key))
+    throw new HttpError(503, "Private local video storage is not configured.");
+  storage();
+  return join(process.env.MEDIA_LOCAL_ROOT!, key);
 }

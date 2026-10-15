@@ -11,10 +11,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "media:cleanup": "node --conditions=react-server --import tsx --env-file-if-exists=.env scripts/media-cleanup.ts"
+    "media:cleanup": "node --conditions=react-server --import tsx --env-file-if-exists=.env scripts/media-cleanup.ts",
+    "video:worker": "node --max-old-space-size=384 --conditions=react-server --import tsx --env-file-if-exists=.env scripts/video-worker.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1152.0",
+    "@aws-sdk/s3-request-presigner": "^3.1152.0",
     "@tailwindcss/postcss": "4.1.7",
     "@types/node": "^22.15.18",
     "@types/react": "19.1.4",

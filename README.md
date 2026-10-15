@@ -14,6 +14,11 @@ separate. The temporary brand lives in `lib/brand.ts`.
 processing, protected galleries and revision-checked photo review. Production
 photo approval requires a configured scanner plus human moderation; local
 development uses explicitly unscanned, manually reviewed fixtures.
+[Phase 3B](docs/phase-three-b.md) adds direct private video uploads, a separate
+PostgreSQL queue/FFmpeg worker, protected range streaming, and revision-bound
+video review. Production video approval requires a full-frame/audio scanner,
+a working isolated worker runtime, and staff review. No video processing runs
+inside Next.js requests. See the guide for local fixture setup and prerequisites.
 
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
 are retained. Apply the additive migrations with `pnpm db:migrate` against your

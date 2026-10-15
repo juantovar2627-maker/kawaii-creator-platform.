@@ -6,10 +6,13 @@ import { useSocialAction } from "./actions";
 import { SocialFeedback, SocialPages } from "./primitives";
 import { PhotoGallery } from "@/components/media/gallery";
 import type { Photo } from "@/lib/media/types";
+import { VideoPlayer } from "@/components/video/player";
+import type { CreatorVideo } from "@/lib/video/types";
 type Kind = "posts" | "comments" | "reports" | "appeals";
 type Item = {
   id: number;
   photos?: Photo[];
+  video?: CreatorVideo | null;
   title?: string;
   body?: string;
   username?: string;
@@ -53,10 +56,10 @@ export function SocialModeration() {
           <p className="eyebrow">CARE FOR THE CONVERSATION</p>
           <h2>Post & comment moderation</h2>
           <p className="creator-help">
-            Review all text and photos. Human approval is mandatory; never
-            approve explicit, exploitative, non-consensual or privacy-violating
-            content. Production photos also require a passing configured
-            scanner. Development previews are not content-scanned.
+            Review all text, photos and videos. Human approval is mandatory;
+            never approve explicit, exploitative, non-consensual or
+            privacy-violating content. Production photos also require a passing
+            configured scanner. Development previews are not content-scanned.
           </p>
         </div>
       </div>
@@ -117,6 +120,13 @@ export function SocialModeration() {
             {item.username && <p>@{item.username}</p>}
             {item.body && <p className="creator-text">{item.body}</p>}
             <PhotoGallery photos={item.photos} preview />
+            <VideoPlayer video={item.video} privatePreview />
+            {item.snapshot?.video != null && (
+              <VideoPlayer
+                video={item.snapshot.video as CreatorVideo}
+                privatePreview
+              />
+            )}
             {Array.isArray(item.snapshot?.photos) && (
               <PhotoGallery photos={item.snapshot.photos as Photo[]} preview />
             )}
@@ -241,7 +251,12 @@ export function SocialModeration() {
                             className="mimi-button primary small"
                             disabled={action.busy}
                           >
-                            Approve {item.photos?.length ? "photo" : "text"}{" "}
+                            Approve{" "}
+                            {item.video
+                              ? "video"
+                              : item.photos?.length
+                                ? "photo"
+                                : "text"}{" "}
                             post
                           </button>
                           <button
@@ -249,7 +264,13 @@ export function SocialModeration() {
                             className="mimi-button secondary small"
                             disabled={action.busy}
                           >
-                            Reject {item.photos?.length ? "photo" : "text"} post
+                            Reject{" "}
+                            {item.video
+                              ? "video"
+                              : item.photos?.length
+                                ? "photo"
+                                : "text"}{" "}
+                            post
                           </button>
                         </>
                       )}
@@ -259,7 +280,13 @@ export function SocialModeration() {
                           className="mimi-button secondary small"
                           disabled={action.busy}
                         >
-                          Remove {item.photos?.length ? "photo" : "text"} post
+                          Remove{" "}
+                          {item.video
+                            ? "video"
+                            : item.photos?.length
+                              ? "photo"
+                              : "text"}{" "}
+                          post
                         </button>
                       ) : (
                         <button

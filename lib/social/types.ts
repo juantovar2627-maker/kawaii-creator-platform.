@@ -1,3 +1,4 @@
+import type { CreatorVideo } from "@/lib/video/types";
 import type { Photo } from "@/lib/media/types";
 import type { Avatar, Theme } from "@/lib/creators/presets";
 export type SocialCreator = {
@@ -11,6 +12,7 @@ export type PublicPost = {
   title: string;
   body: string;
   photos: Photo[];
+  video: CreatorVideo | null;
   publishedAt: string;
   creator: SocialCreator;
   likes: number;
@@ -33,6 +35,7 @@ export type OwnPost = {
   title: string;
   body: string;
   photos: Photo[];
+  video: CreatorVideo | null;
   status: string;
   revision: number;
   moderationReason: string;

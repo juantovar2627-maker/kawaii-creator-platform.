@@ -56,7 +56,7 @@ export const mediaInput = z.discriminatedUnion("action", [
     .strict(),
 ]);
 const hash = (s: string) => createHash("sha256").update(s).digest("hex");
-async function owned(
+export async function owned(
   tx: Transaction,
   userId: number,
   postId: number,
@@ -89,10 +89,11 @@ async function owned(
     );
   return post;
 }
-async function withdrawVersion(
+export async function withdrawVersion(
   tx: Transaction,
   userId: number,
   post: typeof posts.$inferSelect,
+  kind: "photos" | "video" = "photos",
 ) {
   await tx
     .update(posts)
@@ -108,11 +109,11 @@ async function withdrawVersion(
   await audit(tx, {
     actorId: userId,
     actorRole: "member",
-    action: "post_photos_edited",
+    action: kind === "video" ? "post_video_edited" : "post_photos_edited",
     entityType: "post",
     entityId: post.id,
     profileId: post.profileId,
-    reason: "Photo change withdrew the post to draft; fresh approval required.",
+    reason: `${kind === "video" ? "Video" : "Photo"} change withdrew the post to draft; fresh approval required.`,
     snapshot: { previousRevision: post.revision, previousStatus: post.status },
   });
 }
@@ -135,6 +136,14 @@ export async function changePhotos(
       .from(assets)
       .where(and(eq(assets.postId, post.id), isNull(assets.deletedAt)));
     if (data.action === "reserve") {
+      const mixed = await tx.execute(
+        sql`select id from video_assets where post_id=${post.id} and deleted_at is null limit 1`,
+      );
+      if (mixed.length)
+        throw new HttpError(
+          409,
+          "A post can contain photos or one video, not both.",
+        );
       if (current.length >= 5)
         throw new HttpError(
           409,
@@ -143,6 +152,14 @@ export async function changePhotos(
       const [quota] = await tx.execute<{ count: number; bytes: number }>(
         sql`select count(*)::int as count,coalesce(sum(storage_bytes),0)::int as bytes from media_assets where owner_id=${userId} and state<>'purged'`,
       );
+      const [videoQuota] = await tx.execute<{ bytes: number }>(
+        sql`select coalesce(sum(storage_bytes),0)::bigint as bytes from video_assets where owner_id=${userId} and state<>'purged'`,
+      );
+      if (
+        Number(videoQuota.bytes) + quota.bytes + MAX_BYTES >
+        2 * 1024 * 1024 * 1024
+      )
+        throw new HttpError(409, "Your combined private-media quota is full.");
       if (quota.count >= 200 || quota.bytes + MAX_BYTES > 500 * 1024 * 1024)
         throw new HttpError(
           409,

@@ -7,11 +7,20 @@ import { useSocialAction } from "./actions";
 import { SocialFeedback, SocialPages } from "./primitives";
 import type { OwnPost, Page } from "@/lib/social/types";
 import { PhotoEditor } from "@/components/media/editor";
+import { VideoEditor } from "@/components/video/editor";
 export function PostWorkspace() {
   const [page, setPage] = useState(1);
   const { data, error } = useSWR<
     Page<OwnPost> & { creator: { username: string; eligible: boolean } | null }
-  >(`/api/social?view=workspace&page=${page}`, safetyRequest);
+  >(`/api/social?view=workspace&page=${page}`, safetyRequest, {
+    refreshInterval: (data) =>
+      data?.items.some(
+        (post) =>
+          post.video && ["queued", "processing"].includes(post.video.state),
+      )
+        ? 3000
+        : 0,
+  });
   const action = useSocialAction();
   const [editing, setEditing] = useState<OwnPost | null>(null);
   const [title, setTitle] = useState("");
@@ -49,9 +58,9 @@ export function PostWorkspace() {
                   : "A little note to your community"}
               </h2>
               <p className="creator-help">
-                Text with optional photos. Editing a published or pending post
-                withdraws it to a draft. Every new version needs fresh staff
-                approval; removed posts require a review request.
+                Text with optional photos or a video. Editing a published or
+                pending post withdraws it to a draft. Every new version needs
+                fresh staff approval; removed posts require a review request.
               </p>
               {!data.creator?.eligible && (
                 <p className="creator-policy-note">
@@ -126,7 +135,8 @@ export function PostWorkspace() {
                   <span className="category-tag">{post.status}</span>
                   <h3>{post.title || "Untitled note"}</h3>
                   <p className="creator-text">{post.body}</p>
-                  <PhotoEditor post={post} />
+                  {!post.video && <PhotoEditor post={post} />}
+                  <VideoEditor post={post} />
                   {post.moderationReason && (
                     <p className="creator-policy-note">
                       <strong>Moderator response:</strong>{" "}

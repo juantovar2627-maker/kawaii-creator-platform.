@@ -518,6 +518,120 @@ export const mediaAssets = pgTable(
   ],
 );
 
+export const videoAssets = pgTable(
+  'video_assets',
+  {
+    id: uuid('id').primaryKey(),
+    ownerId: integer('owner_id')
+      .notNull()
+      .references(() => users.id),
+    postId: integer('post_id')
+      .notNull()
+      .references(() => socialPosts.id),
+    description: varchar('description', { length: 1000 }).notNull(),
+    transcript: text('transcript').notNull().default(''),
+    state: varchar('state', { length: 20 }).notNull().default('authorizing'),
+    moderation: varchar('moderation', { length: 20 })
+      .notNull()
+      .default('pending'),
+    approvedRevision: integer('approved_revision'),
+    scanStatus: varchar('scan_status', { length: 30 })
+      .notNull()
+      .default('not_scanned'),
+    scanPolicy: varchar('scan_policy', { length: 120 }),
+    processorMode: varchar('processor_mode', { length: 30 }),
+    sourceKey: text('source_key').notNull().unique(),
+    playbackKey: text('playback_key').notNull().unique(),
+    posterKey: text('poster_key').notNull().unique(),
+    storageDriver: varchar('storage_driver', { length: 10 }).notNull(),
+    uploadId: text('upload_id'),
+    uploadTokenHash: varchar('upload_token_hash', { length: 64 }).notNull(),
+    uploadExpiresAt: timestamp('upload_expires_at').notNull(),
+    expectedBytes: integer('expected_bytes').notNull(),
+    sourceBytes: integer('source_bytes').notNull().default(0),
+    playbackBytes: integer('playback_bytes').notNull().default(0),
+    posterBytes: integer('poster_bytes').notNull().default(0),
+    storageBytes: integer('storage_bytes').notNull().default(209715200),
+    width: integer('width'),
+    height: integer('height'),
+    durationMs: integer('duration_ms'),
+    frameRate: integer('frame_rate'),
+    videoCodec: varchar('video_codec', { length: 30 }),
+    audioCodec: varchar('audio_codec', { length: 30 }),
+    sourceSha256: varchar('source_sha256', { length: 64 }),
+    sha256: varchar('sha256', { length: 64 }),
+    error: varchar('error', { length: 300 }),
+    sourceDeletedAt: timestamp('source_deleted_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at'),
+    purgedAt: timestamp('purged_at'),
+  },
+  (t) => [
+    uniqueIndex('one_active_video_per_post')
+      .on(t.postId)
+      .where(sql`${t.deletedAt} is null`),
+    index('video_owner_quota').on(t.ownerId, t.state),
+    index('video_cleanup').on(t.state, t.uploadExpiresAt),
+    check(
+      'video_state',
+      sql`${t.state} in ('authorizing','reserved','uploading','uploaded','queued','processing','ready','failed','purged')`,
+    ),
+    check(
+      'video_moderation',
+      sql`${t.moderation} in ('pending','approved','rejected','removed')`,
+    ),
+    check(
+      'video_scan',
+      sql`${t.scanStatus} in ('not_scanned','passed','development_manual','rejected','unavailable')`,
+    ),
+    check('video_driver', sql`${t.storageDriver} in ('local','s3')`),
+    check(
+      'video_expected_size',
+      sql`${t.expectedBytes} between 1 and 104857600`,
+    ),
+    check('video_quota_size', sql`${t.storageBytes} between 0 and 209715200`),
+    check(
+      'video_duration',
+      sql`${t.durationMs} is null or ${t.durationMs} between 1 and 60000`,
+    ),
+  ],
+);
+export const videoWorkers = pgTable('video_workers', {
+  id: uuid('id').primaryKey(),
+  status: varchar('status', { length: 20 }).notNull(),
+  currentJobId: uuid('current_job_id'),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  heartbeatAt: timestamp('heartbeat_at').notNull().defaultNow(),
+});
+export const videoJobs = pgTable(
+  'video_jobs',
+  {
+    id: uuid('id').primaryKey(),
+    assetId: uuid('asset_id')
+      .notNull()
+      .unique()
+      .references(() => videoAssets.id),
+    state: varchar('state', { length: 20 }).notNull().default('queued'),
+    attempts: integer('attempts').notNull().default(0),
+    workerId: uuid('worker_id').references(() => videoWorkers.id),
+    leaseToken: uuid('lease_token'),
+    leaseExpiresAt: timestamp('lease_expires_at'),
+    availableAt: timestamp('available_at').notNull().defaultNow(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    error: varchar('error', { length: 120 }),
+  },
+  (t) => [
+    index('video_job_claim').on(t.state, t.availableAt, t.leaseExpiresAt),
+    check(
+      'video_job_state',
+      sql`${t.state} in ('queued','running','succeeded','failed','cancelled')`,
+    ),
+    check('video_job_attempts', sql`${t.attempts} between 0 and 3`),
+  ],
+);
+
 export const teams = pgTable('teams', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),

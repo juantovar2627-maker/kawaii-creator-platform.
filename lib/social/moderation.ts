@@ -17,6 +17,8 @@ import type { z } from "zod";
 
 import { photoJson, photoSnapshot, reviewPhotos } from "@/lib/media/lifecycle";
 
+import { videoJson, videoSnapshot } from "@/lib/video/lifecycle";
+
 export async function getSocialQueue(q: z.infer<typeof socialAdminQuery>) {
   const offset = (q.page - 1) * 10;
   let items;
@@ -26,7 +28,7 @@ export async function getSocialQueue(q: z.infer<typeof socialAdminQuery>) {
     )
       throw new HttpError(400, "Invalid post status.");
     items = await db.execute(
-      sql`select p.id,p.title,p.body,${photoJson} as photos,p.status,p.revision,p.moderation_reason as "moderationReason",p.updated_at as "createdAt",cp.username from social_posts p join creator_profiles cp on cp.id=p.profile_id where p.deleted_at is null and p.status<>'draft' and ${q.status === "all" ? sql`true` : sql`p.status=${q.status}`} order by p.updated_at desc,p.id desc limit 11 offset ${offset}`,
+      sql`select p.id,p.title,p.body,${photoJson} as photos,${videoJson} as video,p.status,p.revision,p.moderation_reason as "moderationReason",p.updated_at as "createdAt",cp.username from social_posts p join creator_profiles cp on cp.id=p.profile_id where p.deleted_at is null and p.status<>'draft' and ${q.status === "all" ? sql`true` : sql`p.status=${q.status}`} order by p.updated_at desc,p.id desc limit 11 offset ${offset}`,
     );
   } else if (q.kind === "comments") {
     if (!["all", "visible", "removed"].includes(q.status))
@@ -259,6 +261,9 @@ export async function moderateSocial(
     await tx.execute(
       sql`update media_assets set moderation=${status === "published" ? "approved" : status === "rejected" ? "rejected" : status === "removed" ? "removed" : "pending"},approved_revision=${status === "published" ? post.revision + 1 : null},updated_at=now() where post_id=${post.id} and deleted_at is null`,
     );
+    await tx.execute(
+      sql`update video_assets set moderation=${status === "published" ? "approved" : status === "rejected" ? "rejected" : status === "removed" ? "removed" : "pending"},approved_revision=${status === "published" ? post.revision + 1 : null},updated_at=now() where post_id=${post.id} and deleted_at is null`,
+    );
     const names = {
       approve_post: "post_approved",
       reject_post: "post_rejected",
@@ -280,6 +285,7 @@ export async function moderateSocial(
         previousStatus: post.status,
         revision: post.revision,
         photos: await photoSnapshot(tx, post.id),
+        video: await videoSnapshot(tx, post.id),
       },
     });
     return {

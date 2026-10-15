@@ -31,6 +31,8 @@ import {
   reviewPhotos,
 } from "@/lib/media/lifecycle";
 
+import { videoSnapshot } from "@/lib/video/lifecycle";
+
 export async function mutateSocial(
   userId: number,
   data: z.infer<typeof socialInput>,
@@ -197,6 +199,7 @@ export async function mutateSocial(
             body: post.body,
             revision: post.revision + 1,
             photos: await photoSnapshot(tx, post.id),
+            video: await videoSnapshot(tx, post.id),
           },
         });
         return { message: "Post submitted for moderation." };
@@ -441,6 +444,7 @@ export async function mutateSocial(
           body: post.body,
           revision: post.revision,
           photos: await photoSnapshot(tx, post.id),
+          video: await videoSnapshot(tx, post.id),
         };
       } else {
         const [comment] = await tx

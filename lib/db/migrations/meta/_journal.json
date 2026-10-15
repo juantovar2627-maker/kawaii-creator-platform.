@@ -43,6 +43,13 @@
       "when": 1792053463170,
       "tag": "0005_puzzling_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792097694017,
+      "tag": "0006_sudden_sue_storm",
+      "breakpoints": true
     }
   ]
 }
