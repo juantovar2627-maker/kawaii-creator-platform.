@@ -5,8 +5,18 @@ import {
   text,
   timestamp,
   integer,
+  jsonb,
+  uniqueIndex,
+  check,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
+import type {
+  Avatar,
+  Banner,
+  CreatorCategory,
+  Theme,
+  Visibility,
+} from '../creators/presets';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -17,6 +27,91 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   deletedAt: timestamp('deleted_at'),
+});
+
+// Additive opt-in extension. Existing authentication/account tables stay intact.
+export const creatorProfiles = pgTable(
+  'creator_profiles',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .unique()
+      .references(() => users.id),
+    username: varchar('username', { length: 30 }).notNull(),
+    displayName: varchar('display_name', { length: 80 }).notNull(),
+    biography: text('biography').notNull().default(''),
+    theme: varchar('theme', { length: 20 })
+      .$type<Theme>()
+      .notNull()
+      .default('pink'),
+    avatar: varchar('avatar', { length: 20 })
+      .$type<Avatar>()
+      .notNull()
+      .default('flower'),
+    banner: varchar('banner', { length: 20 })
+      .$type<Banner>()
+      .notNull()
+      .default('blossom'),
+    categories: jsonb('categories').$type<CreatorCategory[]>().notNull(),
+    websiteUrl: varchar('website_url', { length: 300 }).notNull().default(''),
+    instagramUrl: varchar('instagram_url', { length: 300 })
+      .notNull()
+      .default(''),
+    youtubeUrl: varchar('youtube_url', { length: 300 }).notNull().default(''),
+    visibility: varchar('visibility', { length: 20 })
+      .$type<Visibility>()
+      .notNull()
+      .default('unlisted'),
+    // Never accepted from a public mutation. Review tooling is a Phase 2B task.
+    moderationStatus: varchar('moderation_status', { length: 20 })
+      .$type<'pending' | 'approved' | 'suspended'>()
+      .notNull()
+      .default('pending'),
+    communityAcceptedAt: timestamp('community_accepted_at')
+      .notNull()
+      .defaultNow(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('creator_profiles_username_lower_unique').on(
+      sql`lower(${table.username})`,
+    ),
+    check(
+      'creator_username_format',
+      sql`${table.username} ~ '^[a-z][a-z0-9_]{2,29}$'`,
+    ),
+    check(
+      'creator_visibility',
+      sql`${table.visibility} in ('hidden', 'unlisted', 'listed')`,
+    ),
+    check(
+      'creator_moderation',
+      sql`${table.moderationStatus} in ('pending', 'approved', 'suspended')`,
+    ),
+    check(
+      'creator_theme',
+      sql`${table.theme} in ('pink', 'lavender', 'peach', 'mint')`,
+    ),
+    check(
+      'creator_avatar',
+      sql`${table.avatar} in ('flower', 'star', 'bow', 'cloud')`,
+    ),
+    check(
+      'creator_banner',
+      sql`${table.banner} in ('blossom', 'daydream', 'sunrise')`,
+    ),
+  ],
+);
+
+// One persistent row per account; concurrent instances share the same limit.
+export const creatorMutationLimits = pgTable('creator_mutation_limits', {
+  userId: integer('user_id')
+    .primaryKey()
+    .references(() => users.id),
+  windowStartedAt: timestamp('window_started_at').notNull().defaultNow(),
+  attempts: integer('attempts').notNull().default(1),
 });
 
 export const teams = pgTable('teams', {

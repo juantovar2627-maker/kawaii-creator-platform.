@@ -9,6 +9,8 @@ import { DemoProvider } from "@/components/community/demo-provider";
 import { brand } from "@/lib/brand";
 import { publicUser } from "@/lib/auth/public-user";
 
+export const experimental_ppr = true;
+
 export const metadata: Metadata = {
   title: {
     default: `${brand.name} — ${brand.tagline}`,

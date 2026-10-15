@@ -75,13 +75,13 @@ export function PersonalDashboard() {
         <div className="account-tool">
           <Sparkles size={25} aria-hidden="true" />
           <div>
-            <h2>Something lovely starts here.</h2>
+            <h2>My Creator Space</h2>
             <p>
-              Make a browser-local post draft in your creator studio. Publishing
-              will come later.
+              Set up your real creator profile, choose your colors, and control
+              who can find your little corner.
             </p>
-            <Link href="/dashboard/creator-tools" className="text-link">
-              Open creator studio
+            <Link href="/dashboard/creator-space" className="text-link">
+              Open My Creator Space
               <ArrowUpRight size={15} aria-hidden="true" />
             </Link>
           </div>
