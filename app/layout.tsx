@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { Manrope } from "next/font/google";
 import { getUser, getTeamForUser } from "@/lib/db/queries";
-import { SWRConfig } from "swr";
+import { SessionDataProvider } from "@/components/session-data-provider";
 import { PaymentsProvider } from "@/components/payments-provider";
 import { isPaymentsEnabled } from "@/lib/payments/config";
 import { DemoProvider } from "@/components/community/demo-provider";
@@ -26,28 +26,29 @@ export const viewport: Viewport = {
 
 const manrope = Manrope({ subsets: ["latin"] });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // SWR 2.3.x can notify a subscriber during React's promise fallback render
+  // before its returnedData binding exists. Resolved session fallbacks avoid
+  // that race when multiple social components read the same account key.
+  const [user, team] = await Promise.all([getUser(), getTeamForUser()]);
   return (
     <html lang="en" className={manrope.className}>
       <body>
-        <SWRConfig
-          value={{
-            fallback: {
-              // We do NOT await here
-              // Only components that read this data will suspend
-              "/api/user": getUser().then(publicUser),
-              "/api/team": getTeamForUser(),
-            },
+        <SessionDataProvider
+          key={user?.id ?? "anonymous"}
+          fallback={{
+            "/api/user": publicUser(user),
+            "/api/team": team,
           }}
         >
           <PaymentsProvider enabled={isPaymentsEnabled()}>
             <DemoProvider>{children}</DemoProvider>
           </PaymentsProvider>
-        </SWRConfig>
+        </SessionDataProvider>
       </body>
     </html>
   );

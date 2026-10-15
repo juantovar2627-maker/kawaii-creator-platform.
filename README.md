@@ -7,12 +7,14 @@ owner-only editing, public link access, and moderation-gated discovery.
 The [Phase 1 guide](docs/phase-one.md) describes the original frontend and demo interactions.
 [Phase 2B](docs/phase-two-b.md) adds restricted moderation, real reports, account
 blocks, review requests, and a documented manual staff provisioning process.
-The temporary brand lives in `lib/brand.ts`.
+[Phase 2C](docs/phase-two-c.md) adds real follows, reviewed text posts, comments,
+likes, private saved posts, and post/comment moderation. Demo interactions remain
+separate. The temporary brand lives in `lib/brand.ts`.
 
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
 are retained. Apply the additive migrations with `pnpm db:migrate` against your
-development database. Creator profiles are real; the six fictional creators and
-social interactions remain clearly separated demos. Payments remain disabled.
+development database. Creator profiles and social interactions are real; the six fictional creators
+and their browser-local interactions remain separately labeled demos. Payments remain disabled.
 
 ## Starter foundation
 

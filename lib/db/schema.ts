@@ -268,6 +268,184 @@ export const safetyRateLimits = pgTable(
   (t) => [primaryKey({ columns: [t.userId, t.scope] })],
 );
 
+export const creatorFollows = pgTable(
+  'creator_follows',
+  {
+    followerId: integer('follower_id')
+      .notNull()
+      .references(() => users.id),
+    creatorId: integer('creator_id')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.followerId, t.creatorId] }),
+    index('followers_creator').on(t.creatorId),
+    check('no_self_follow', sql`${t.followerId} <> ${t.creatorId}`),
+  ],
+);
+
+export const socialPosts = pgTable(
+  'social_posts',
+  {
+    id: serial('id').primaryKey(),
+    profileId: integer('profile_id')
+      .notNull()
+      .references(() => creatorProfiles.id),
+    title: varchar('title', { length: 120 }).notNull().default(''),
+    body: text('body').notNull(),
+    status: varchar('status', { length: 20 })
+      .$type<'draft' | 'pending' | 'published' | 'rejected' | 'removed'>()
+      .notNull()
+      .default('draft'),
+    revision: integer('revision').notNull().default(1),
+    moderationReason: text('moderation_reason').notNull().default(''),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    publishedAt: timestamp('published_at'),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (t) => [
+    index('social_posts_feed').on(t.status, t.publishedAt, t.id),
+    index('social_posts_owner').on(t.profileId, t.id),
+    check(
+      'social_post_status',
+      sql`${t.status} in ('draft','pending','published','rejected','removed')`,
+    ),
+    check('social_post_body_length', sql`length(${t.body}) between 1 and 4000`),
+  ],
+);
+
+export const socialComments = pgTable(
+  'social_comments',
+  {
+    id: serial('id').primaryKey(),
+    postId: integer('post_id')
+      .notNull()
+      .references(() => socialPosts.id),
+    authorId: integer('author_id')
+      .notNull()
+      .references(() => users.id),
+    body: text('body').notNull(),
+    status: varchar('status', { length: 20 })
+      .$type<'visible' | 'removed'>()
+      .notNull()
+      .default('visible'),
+    revision: integer('revision').notNull().default(1),
+    moderationReason: text('moderation_reason').notNull().default(''),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at'),
+  },
+  (t) => [
+    index('comments_post_page').on(t.postId, t.id),
+    index('comments_author').on(t.authorId),
+    check('social_comment_status', sql`${t.status} in ('visible','removed')`),
+    check(
+      'social_comment_body_length',
+      sql`length(${t.body}) between 1 and 600`,
+    ),
+  ],
+);
+
+export const postLikes = pgTable(
+  'post_likes',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    postId: integer('post_id')
+      .notNull()
+      .references(() => socialPosts.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.userId, t.postId] }),
+    index('likes_post').on(t.postId),
+  ],
+);
+export const savedPosts = pgTable(
+  'saved_posts',
+  {
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    postId: integer('post_id')
+      .notNull()
+      .references(() => socialPosts.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.postId] })],
+);
+
+export const socialReports = pgTable(
+  'social_reports',
+  {
+    id: serial('id').primaryKey(),
+    reporterId: integer('reporter_id')
+      .notNull()
+      .references(() => users.id),
+    postId: integer('post_id').references(() => socialPosts.id),
+    commentId: integer('comment_id').references(() => socialComments.id),
+    reason: varchar('reason', { length: 40 }).notNull(),
+    explanation: text('explanation').notNull().default(''),
+    snapshot: jsonb('snapshot').$type<Record<string, unknown>>().notNull(),
+    status: varchar('status', { length: 20 })
+      .$type<'open' | 'resolved' | 'dismissed'>()
+      .notNull()
+      .default('open'),
+    resolution: text('resolution').notNull().default(''),
+    reviewedBy: integer('reviewed_by').references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    reviewedAt: timestamp('reviewed_at'),
+  },
+  (t) => [
+    check(
+      'social_report_target',
+      sql`(${t.postId} is not null)::int + (${t.commentId} is not null)::int = 1`,
+    ),
+    check(
+      'social_report_status',
+      sql`${t.status} in ('open','resolved','dismissed')`,
+    ),
+    uniqueIndex('one_open_post_report')
+      .on(t.reporterId, t.postId)
+      .where(sql`${t.status}='open'`),
+    uniqueIndex('one_open_comment_report')
+      .on(t.reporterId, t.commentId)
+      .where(sql`${t.status}='open'`),
+    index('social_reports_queue').on(t.status, t.id),
+  ],
+);
+
+export const socialAppeals = pgTable(
+  'social_appeals',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id),
+    decisionId: integer('decision_id')
+      .notNull()
+      .unique()
+      .references(() => moderationAudit.id),
+    explanation: text('explanation').notNull(),
+    status: varchar('status', { length: 20 })
+      .$type<'open' | 'reviewed'>()
+      .notNull()
+      .default('open'),
+    resolution: text('resolution').notNull().default(''),
+    reviewedBy: integer('reviewed_by').references(() => users.id),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    reviewedAt: timestamp('reviewed_at'),
+  },
+  (t) => [
+    index('social_appeals_queue').on(t.status, t.id),
+    check('social_appeal_status', sql`${t.status} in ('open','reviewed')`),
+  ],
+);
+
 export const teams = pgTable('teams', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),

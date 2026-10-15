@@ -1,3 +1,4 @@
+import { SocialModeration } from "@/components/social/moderation";
 import { getUser } from "@/lib/db/queries";
 import { getStaffForUser } from "@/lib/moderation/permissions";
 import { ModerationDashboard } from "@/components/safety/moderation-dashboard";
@@ -25,6 +26,7 @@ export default async function ModerationPage() {
         description="Review creator spaces, listen to reports, and keep every decision clear and accountable."
       />
       <ModerationDashboard />
+      <SocialModeration />
     </>
   );
 }

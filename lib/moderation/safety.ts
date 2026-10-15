@@ -14,6 +14,8 @@ import { audit } from "./audit";
 import { safetyInput } from "./validation";
 import type { z } from "zod";
 import { publicCreatorColumns } from "@/lib/creators/queries";
+import { lockPair } from "@/lib/social/access";
+import { sql } from "drizzle-orm";
 
 export async function getOwnSafety(userId: number, page = 1) {
   const offset = (page - 1) * 20;
@@ -169,6 +171,7 @@ export async function mutateSafety(
     if (target.userId === userId)
       throw new HttpError(400, "You cannot report or block yourself.");
     if (data.action === "block") {
+      await lockPair(tx, userId, target.userId);
       const [block] = await tx
         .insert(blocks)
         .values({
@@ -180,6 +183,9 @@ export async function mutateSafety(
         .onConflictDoNothing()
         .returning({ id: blocks.id });
       if (!block) throw new HttpError(409, "This account is already blocked.");
+      await tx.execute(
+        sql`delete from creator_follows where (follower_id=${userId} and creator_id=${target.userId}) or (follower_id=${target.userId} and creator_id=${userId})`,
+      );
       return {
         message: "Account blocked. Manage your blocks in Community Safety.",
         id: block.id,

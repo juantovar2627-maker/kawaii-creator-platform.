@@ -1213,7 +1213,7 @@ h3 {
 .empty-state p {
   font-size: 12px;
   line-height: 1.9;
-  color: #88718f;
+  color: #75627d;
   max-width: 420px;
   margin-bottom: 22px;
 }
@@ -3073,5 +3073,244 @@ h3 {
   }
   .moderation-actions .mimi-button {
     flex: 1 1 40%;
+  }
+}
+
+/* Real text-only social spaces. Fictional demo interactions remain separate. */
+.real-feed,
+.real-following,
+.social-activity,
+.social-moderation {
+  margin: 30px 0;
+  min-width: 0;
+}
+.real-feed .section-heading h2,
+.real-following h2,
+.social-activity h2,
+.social-moderation h2,
+.own-post-list h2 {
+  font-weight: 750;
+  font-size: 1.35rem;
+  margin: 14px 0;
+}
+.real-post-list,
+.own-post-list {
+  display: grid;
+  gap: 24px;
+  margin: 24px 0;
+}
+.real-post-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  padding: 26px;
+  box-shadow: 0 6px 28px #956c8a08;
+  min-width: 0;
+}
+.real-post-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.social-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.social-identity > span:last-child {
+  min-width: 0;
+}
+.social-identity strong {
+  display: block;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.social-identity small {
+  display: block;
+  color: #75627d;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.social-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  background: #f6eaf6;
+  color: #82416b;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+.real-post-card time {
+  display: block;
+  font-size: 0.72rem;
+  color: #75627d;
+  margin: 14px 0;
+}
+.real-post-card h3,
+.own-post-list h3,
+.social-review-item h3 {
+  font-size: 1.25rem;
+  font-weight: 750;
+  margin: 18px 0 12px;
+  overflow-wrap: anywhere;
+}
+.real-post-body {
+  font-size: 0.95rem;
+  line-height: 1.95;
+  margin: 20px 0;
+}
+.real-post-actions,
+.social-comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+.social-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  color: #75627d;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.social-action-button:hover,
+.social-action-button[aria-pressed="true"] {
+  background: #fcecf3;
+  color: #993c65;
+}
+.social-action-button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+.real-comments {
+  border-top: 1px solid var(--line);
+  margin-top: 24px;
+  padding-top: 24px;
+}
+.real-comments h4,
+.social-activity h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 12px 0;
+}
+.real-comment {
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+.real-comment > small {
+  display: block;
+  font-size: 0.7rem;
+  margin: 10px 0;
+  color: #75627d;
+}
+.real-comment > p {
+  font-size: 0.85rem;
+  line-height: 1.9;
+  margin: 12px 0;
+}
+.social-report {
+  margin: 16px 0;
+  font-size: 0.8rem;
+}
+.social-report summary,
+.own-post-list summary,
+.social-activity summary,
+.social-review-item summary {
+  cursor: pointer;
+  color: #94385f;
+  font-size: 0.8rem;
+  font-weight: 650;
+  padding: 8px 0;
+}
+.social-empty {
+  background: #fdf6fa;
+  color: #75627d;
+  padding: 24px;
+  border: 1px dashed #dfc7d8;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  line-height: 1.9;
+  margin: 18px 0;
+}
+.social-empty strong {
+  color: #58445f;
+}
+.social-empty p {
+  margin: 10px 0;
+}
+.real-follow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+}
+.real-follow .creator-error,
+.real-follow .creator-success {
+  width: 100%;
+}
+.real-follower-count {
+  font-size: 0.8rem;
+  color: #75627d;
+}
+.real-follower-count strong {
+  color: var(--foreground);
+}
+.real-follower-count span {
+  font-size: 0.7rem;
+}
+.social-follow-grid,
+.social-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 22px 0;
+}
+.social-follow-grid .real-follow {
+  margin-top: 20px;
+}
+.own-post-list .creator-text,
+.social-review-item > p {
+  font-size: 0.88rem;
+  line-height: 1.95;
+  margin: 14px 0;
+}
+.social-activity {
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+.social-moderation {
+  border-top: 1px solid var(--line);
+  padding-top: 28px;
+}
+@media (max-width: 700px) {
+  .social-follow-grid,
+  .social-review-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .real-post-card {
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+  .real-post-actions {
+    gap: 5px;
+  }
+  .real-follow {
+    justify-content: flex-start;
+  }
+  .profile-identity:has(.real-follow) {
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 }

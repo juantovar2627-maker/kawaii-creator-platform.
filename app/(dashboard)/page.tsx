@@ -1,3 +1,4 @@
+import { RealFeed } from "@/components/social/feed";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -146,9 +147,10 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      <RealFeed scope="home" title="Little notes from the community" />
       <section>
         <SectionHeading
-          eyebrow="FROM THE COMMUNITY"
+          eyebrow="FICTIONAL DEMO MOMENTS"
           title="A little inspiration for your day"
           href="/feed"
           link="Into the feed"
