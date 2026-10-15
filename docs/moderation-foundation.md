@@ -26,3 +26,13 @@ Do not trust localStorage for enforcement, accept arbitrary account IDs without
 authorization, expose reporter details publicly, or label a report submitted
 until an authenticated backend confirms receipt. No schema changes or destructive
 migrations are included in Phase 1.
+
+## Phase 2A profile boundary
+
+Real profiles now have `pending`, `approved`, and `suspended` moderation states.
+Only approved profiles whose owners requested listing appear in Discover.
+New profiles are unlisted by default; hiding removes public access immediately.
+Edits revoke approval, and profile mutations cannot remove a suspension.
+There is no staff review API yet. See [Phase 2A](phase-two-a.md) for the exact
+visibility contract and remaining moderation work before discovery rollout.
+The demo report/block controls have no authority over real profiles.

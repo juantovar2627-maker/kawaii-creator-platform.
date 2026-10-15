@@ -1,15 +1,16 @@
 # Mimi — a little more you
 
-Phase 1 transforms the Next.js SaaS Starter into a non-explicit creator-community
-frontend with original pastel illustrations, discovery, creator profiles,
-feeds, and a personal account space. Read [the Phase 1 guide](docs/phase-one.md)
-for routes, working interactions, demo-data boundaries and remaining backend work.
+Mimi is a non-explicit creator community built on the Next.js SaaS Starter,
+with pastel illustrations, discovery, feeds, and a personal account space.
+[Phase 2A](docs/phase-two-a.md) adds opt-in PostgreSQL creator profiles,
+owner-only editing, public link access, and moderation-gated discovery.
+The [Phase 1 guide](docs/phase-one.md) describes the original frontend and demo interactions.
 The temporary brand lives in `lib/brand.ts`.
 
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
-are retained. No schema migration or deployment is part of this transformation.
-Social content is fictional and clearly labeled; local demo interactions do not
-change real public accounts. Payments remain disabled.
+are retained. Apply the additive migration with `pnpm db:migrate` against your
+development database. Creator profiles are real; the six fictional creators and
+social interactions remain clearly separated demos. Payments remain disabled.
 
 ## Starter foundation
 

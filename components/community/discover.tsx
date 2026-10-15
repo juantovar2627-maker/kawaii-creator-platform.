@@ -7,8 +7,14 @@ import { categories, filterCreators } from "@/lib/demo/community";
 import { useDemo } from "./demo-provider";
 import { CreatorCard } from "./creator-card";
 import { EmptyState } from "./primitives";
+import { RealCreatorCard } from "@/components/creators/public-profile";
+import type { PublicCreator } from "@/lib/creators/presets";
 
-export function DiscoverDirectory() {
+export function DiscoverDirectory({
+  realCreators = [],
+}: {
+  realCreators?: PublicCreator[];
+}) {
   const params = useSearchParams();
   const initialCategory = params.get("category") || "All creators";
   const [query, setQuery] = useState(params.get("q") || "");
@@ -20,7 +26,24 @@ export function DiscoverDirectory() {
   const [sort, setSort] = useState("featured");
   const { state } = useDemo();
   const filtered = filterCreators(query, category, state.blocked);
+  const search = query.trim().toLowerCase();
+  const realFiltered = realCreators.filter(
+    (creator) =>
+      (category === "All creators" ||
+        creator.categories.some((item) => item === category)) &&
+      [
+        creator.displayName,
+        creator.username,
+        creator.biography,
+        ...creator.categories,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(search),
+  );
   if (sort === "name") filtered.sort((a, b) => a.name.localeCompare(b.name));
+  if (sort === "name")
+    realFiltered.sort((a, b) => a.displayName.localeCompare(b.displayName));
   return (
     <>
       <div className="directory-tools">
@@ -68,9 +91,22 @@ export function DiscoverDirectory() {
         ))}
       </div>
       <p className="result-count" role="status">
-        {filtered.length} {filtered.length === 1 ? "creator" : "creators"} to
-        brighten your day <span>· Fictional demo profiles</span>
+        {realFiltered.length} community creators · {filtered.length} fictional
+        examples
       </p>
+      {realFiltered.length > 0 && (
+        <section aria-label="Community creators">
+          <h2 className="directory-section-title">From our community</h2>
+          <div className="creator-grid">
+            {realFiltered.map((creator) => (
+              <RealCreatorCard key={creator.username} creator={creator} />
+            ))}
+          </div>
+        </section>
+      )}
+      {filtered.length > 0 && (
+        <h2 className="directory-section-title">Meet the demo community</h2>
+      )}
       {filtered.length ? (
         <div className="creator-grid">
           {filtered.map((creator, index) => (
@@ -81,7 +117,7 @@ export function DiscoverDirectory() {
             />
           ))}
         </div>
-      ) : (
+      ) : !realFiltered.length ? (
         <EmptyState
           title="A little quiet here"
           action="Clear filters"
@@ -93,7 +129,7 @@ export function DiscoverDirectory() {
           Try a different name or category. Blocked demo creators are hidden
           from these results.
         </EmptyState>
-      )}
+      ) : null}
     </>
   );
 }

@@ -57,11 +57,11 @@ export default async function ProfilePage() {
           <div>
             <h2>Make something lovely.</h2>
             <p>
-              Try a draft in the creator studio. Your account is real;
-              publishing and public creator profiles are future features.
+              Create your optional public creator profile. Choose your colors,
+              share your story, and keep your visibility in your hands.
             </p>
-            <Link href="/dashboard/creator-tools" className="text-link">
-              Your creator studio
+            <Link href="/dashboard/creator-space" className="text-link">
+              My Creator Space
               <ArrowUpRight size={15} aria-hidden="true" />
             </Link>
           </div>
