@@ -245,8 +245,8 @@ Next.js server with payments disabled and both Stripe keys absent:
   moderation (12) desktop/mobile states; no browser errors or mobile overflow.
 
 Browser checks used disposable, independently authenticated fixtures in the local
-database and removed only those fixtures afterward. No staff account, deployment,
-or payment activation is created by these checks.
+database and removed only those fixtures afterward, including temporary staff
+accounts. Nothing was deployed, and no payment processing was activated.
 
 ## Administrative configuration and remaining work
 
