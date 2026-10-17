@@ -31,7 +31,7 @@ export async function getUser() {
   const user = await db
     .select()
     .from(users)
-    .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt)))
+    .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt), eq(users.sessionVersion, sessionData.version)))
     .limit(1);
 
   if (user.length === 0) {

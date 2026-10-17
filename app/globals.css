@@ -3437,3 +3437,5 @@ h3 {
 .video-status .text-link {
   margin-left: 0.5rem;
 }
+
+.staging-indicator { background: #f4e8ff; color: #512c69; border-bottom: 1px solid #d7b8e8; padding: .65rem 1rem; font-size: .8rem; font-weight: 700; text-align: center; }

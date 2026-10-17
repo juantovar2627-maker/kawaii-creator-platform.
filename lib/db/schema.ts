@@ -27,6 +27,7 @@ export const users = pgTable('users', {
   name: varchar('name', { length: 100 }),
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
+  sessionVersion: integer('session_version').notNull().default(0),
   role: varchar('role', { length: 20 }).notNull().default('member'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -753,3 +754,18 @@ export enum ActivityType {
   INVITE_TEAM_MEMBER = 'INVITE_TEAM_MEMBER',
   ACCEPT_INVITATION = 'ACCEPT_INVITATION',
 }
+
+// HMAC subjects contain no raw email/client address. Expired windows are pruned.
+export const authRateLimits = pgTable('auth_rate_limits', {
+  scope: varchar('scope', { length: 40 }).notNull(),
+  subjectHash: varchar('subject_hash', { length: 64 }).notNull(),
+  attempts: integer('attempts').notNull().default(1),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+}, (t) => [primaryKey({ columns: [t.scope, t.subjectHash] }), index('auth_rate_expiry').on(t.startedAt)]);
+export const serviceRuns = pgTable('service_runs', {
+  service: varchar('service', { length: 40 }).primaryKey(),
+  runId: uuid('run_id').notNull(),
+  status: varchar('status', { length: 20 }).notNull(),
+  startedAt: timestamp('started_at').notNull().defaultNow(),
+  finishedAt: timestamp('finished_at'),
+}, (t) => [check('service_run_status', sql`${t.status} in ('running','succeeded','failed')`)]);

@@ -1,3 +1,4 @@
+import { uploadGate } from "@/lib/security/upload-gate";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 import {
@@ -15,6 +16,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const gate = uploadGate(request);
+  if (gate) return gate;
   return safely(async () => {
     checkOrigin(request);
     const user = await signedIn();

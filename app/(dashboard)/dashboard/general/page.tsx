@@ -9,7 +9,6 @@ import { Loader2 } from 'lucide-react';
 import { updateAccount } from '@/app/(login)/actions';
 import { User } from '@/lib/db/schema';
 import useSWR from 'swr';
-import { Suspense } from 'react';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -90,9 +89,7 @@ export default function GeneralPage() {
         </CardHeader>
         <CardContent>
           <form className="space-y-4" action={formAction}>
-            <Suspense fallback={<AccountForm state={state} />}>
-              <AccountFormWithData state={state} />
-            </Suspense>
+            <AccountFormWithData state={state} />
             {state.error && (
               <p className="text-red-500 text-sm">{state.error}</p>
             )}

@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/db/drizzle";
 import { safetyRateLimits as limits } from "@/lib/db/schema";
 import { getUser } from "@/lib/db/queries";
+import { trustedOrigin } from "@/lib/config/runtime";
 export class HttpError extends Error {
   constructor(
     public status: number,
@@ -45,14 +46,8 @@ export async function signedIn() {
   return user;
 }
 export function checkOrigin(request: NextRequest) {
-  try {
-    const origin = new URL(request.headers.get("origin") || "");
-    if (
-      ["http:", "https:"].includes(origin.protocol) &&
-      origin.host === request.headers.get("host")?.toLowerCase()
-    )
-      return;
-  } catch {}
+  if (trustedOrigin(request.headers.get("origin"), request.headers.get("host"))) return;
+
   throw new HttpError(403, "This request must come from this website.");
 }
 export async function input<S extends z.ZodTypeAny>(

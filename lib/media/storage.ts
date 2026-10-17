@@ -19,6 +19,7 @@ export function localDevelopment() {
   try {
     return (
       process.env.MEDIA_STORAGE_DRIVER === "local" &&
+      (!process.env.APP_ENV || process.env.APP_ENV === "development") &&
       ["localhost", "127.0.0.1", "[::1]"].includes(
         new URL(process.env.BASE_URL || "").hostname,
       )

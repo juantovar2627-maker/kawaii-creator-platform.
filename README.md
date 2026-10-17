@@ -20,6 +20,13 @@ video review. Production video approval requires a full-frame/audio scanner,
 a working isolated worker runtime, and staff review. No video processing runs
 inside Next.js requests. See the guide for local fixture setup and prerequisites.
 
+[Phase 4A](docs/phase-four-a.md) adds runtime validation, private staging access,
+closed staging signup/media intake, session revocation, authentication limits,
+restricted health checks and disposable GitHub Actions CI. Start with
+`.env.example` for loopback development or `.env.staging.example` for reviewed
+private hosting. `pnpm config:check` validates names/settings without printing
+values. No hosting resources or payments are enabled by these changes.
+
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
 are retained. Apply the additive migrations with `pnpm db:migrate` against your
 development database. Creator profiles and social interactions are real; the six fictional creators

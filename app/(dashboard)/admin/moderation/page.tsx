@@ -4,7 +4,6 @@ import { getStaffForUser } from "@/lib/moderation/permissions";
 import { ModerationDashboard } from "@/components/safety/moderation-dashboard";
 import { PageIntro } from "@/components/community/primitives";
 export const dynamic = "force-dynamic";
-export const experimental_ppr = false;
 export const metadata = {
   title: "Moderation",
   robots: { index: false, follow: false },
