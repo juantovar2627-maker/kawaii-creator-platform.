@@ -480,18 +480,19 @@ let browser;
         )
         .every((img) => img.complete),
     );
-    assert.equal(
-      await stage.evaluate(() =>
-        Array.from(document.images)
-          .filter(
-            (img) =>
-              img.loading !== "lazy" ||
-              img.getBoundingClientRect().top < innerHeight,
-          )
-          .every((img) => img.naturalWidth > 0),
-      ),
-      true,
-      "Authorized staging illustrations load through the site gate",
+    const illustrationStatus = await stage.evaluate(() =>
+      Array.from(document.images)
+        .filter(
+          (img) =>
+            img.loading !== "lazy" ||
+            img.getBoundingClientRect().top < innerHeight,
+        )
+        .map((img) => ({ path: new URL(img.currentSrc).pathname, loaded: img.naturalWidth > 0 })),
+    );
+    assert.ok(
+      illustrationStatus.every((img) => img.loaded),
+      "Authorized staging illustrations load through the site gate: " +
+        JSON.stringify(illustrationStatus),
     );
     console.log(
       "PASS: authorized staging homepage and protected illustration delivery",
