@@ -6,12 +6,13 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 const exec = promisify(execFile);
 test(
   "S3-compatible quarantine protocol: scoped upload part, server verification, consumed authorization and cleanup",
   { skip: !process.env.TEST_BASE_URL },
   async () => {
-    const tmp = await mkdtemp("/workspace/.cloud-onboarding/video-s3-test-");
+    const tmp = await mkdtemp(join(tmpdir(), "video-s3-test-"));
     let server;
     const uploads = new Map(),
       objects = new Map();
