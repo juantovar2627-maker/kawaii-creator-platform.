@@ -1,4 +1,5 @@
 import "server-only";
+import { uploadsEnabled } from "@/lib/config/runtime";
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -121,6 +122,8 @@ export async function changePhotos(
   userId: number,
   data: z.infer<typeof mediaInput>,
 ) {
+  if (data.action === "reserve" && !uploadsEnabled())
+    throw new HttpError(503, "Photo uploads are disabled in this environment.");
   const store = data.action === "reserve" ? storage() : null;
   return db.transaction(async (tx) => {
     // One quota reservation per owner at a time, across all application instances.
@@ -239,6 +242,8 @@ export async function receivePhoto(
   token: string,
   request: Request,
 ) {
+  if (!uploadsEnabled())
+    throw new HttpError(503, "Photo uploads are disabled in this environment.");
   const store = storage();
   const asset = await db.transaction(async (tx) => {
     const [found] = await tx

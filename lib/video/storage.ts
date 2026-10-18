@@ -74,12 +74,13 @@ export function videoStorage() {
         { expiresIn, signableHeaders: new Set(["content-length"]) },
       );
     },
-    async head(key: string): Promise<number | null> {
+    async head(key: string, signal?: AbortSignal): Promise<number | null> {
       safeKey(key);
       try {
         if (local) return (await stat(localObjectPath(key))).size;
         const r = await remote!.client.send(
           new HeadObjectCommand({ Bucket: remote!.bucket, Key: key }),
+          { abortSignal: signal },
         );
         return r.ContentLength ?? null;
       } catch (e) {

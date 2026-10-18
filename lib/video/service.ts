@@ -1,4 +1,5 @@
 import "server-only";
+import { videosEnabled } from "@/lib/config/runtime";
 import { randomUUID, randomBytes, createHash } from "node:crypto";
 import { eq, and, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -69,6 +70,7 @@ export async function mutateVideo(
   userId: number,
   data: z.infer<typeof videoInput>,
 ) {
+  if ((data.action === "reserve" || data.action === "complete") && !videosEnabled()) throw new HttpError(503, "Video uploads are disabled in this environment.");
   const store =
     data.action === "reserve" || data.action === "complete"
       ? videoStorage()
@@ -303,6 +305,7 @@ export async function receiveLocalVideo(
   token: string,
   request: Request,
 ) {
+  if (!videosEnabled()) throw new HttpError(503, "Video uploads are disabled in this environment.");
   if (!localDevelopment())
     throw new HttpError(
       404,

@@ -1,12 +1,10 @@
-import type { NextConfig } from 'next';
-
+import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   experimental: {
-    // Retain PPR by default via the root layout, while allowing database-backed
-    // creator routes to opt out and return real request-time HTTP 404 statuses.
-    ppr: 'incremental',
-    clientSegmentCache: true,
+    cpus: 2,
+    middlewareClientMaxBodySize: "64kb",
+    serverActions: { bodySizeLimit: "64kb" },
   },
 };
-
 export default nextConfig;

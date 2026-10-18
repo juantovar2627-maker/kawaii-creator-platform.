@@ -81,6 +81,7 @@ export default function HomePage() {
         </div>
         <div className="hero-art">
           <Image
+            unoptimized
             src="/images/mimi-hero.png"
             alt="Original illustration of three adult creators sharing a cozy, pastel-filled art studio"
             width={1536}

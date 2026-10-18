@@ -50,6 +50,13 @@
       "when": 1792097694017,
       "tag": "0006_sudden_sue_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792102766389,
+      "tag": "0007_sudden_jean_grey",
+      "breakpoints": true
     }
   ]
 }

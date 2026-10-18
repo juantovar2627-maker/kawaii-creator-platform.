@@ -1,4 +1,5 @@
 import "server-only";
+import { assertConfiguration, videosEnabled } from "@/lib/config/runtime";
 import { randomUUID } from "node:crypto";
 import { mkdir, rm } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
@@ -29,6 +30,8 @@ export async function runWorkerOnce(
   workerId = randomUUID(),
   outerSignal: AbortSignal = new AbortController().signal,
 ) {
+  assertConfiguration("worker");
+  if (!videosEnabled()) throw new Error("Video worker disabled.");
   await db
     .insert(workers)
     .values({ id: workerId, status: "idle" })

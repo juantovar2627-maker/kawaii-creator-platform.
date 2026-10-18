@@ -8,7 +8,6 @@ import { RealCreatorProfile } from "@/components/creators/public-profile";
 // Request-time resolution keeps hidden profiles private immediately. Disabling
 // PPR here lets notFound set HTTP 404 before any page shell is streamed.
 export const dynamic = "force-dynamic";
-export const experimental_ppr = false;
 const resolveCreator = cache(async (username: string) => {
   const demo = findCreator(username.toLowerCase());
   return demo

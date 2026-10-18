@@ -181,7 +181,6 @@ test(
       execFileSync(
         process.execPath,
         [
-          "--env-file=.env",
           "scripts/platform-staff.mjs",
           "--action",
           "grant",

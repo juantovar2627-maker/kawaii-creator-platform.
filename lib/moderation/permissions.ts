@@ -8,6 +8,15 @@ export async function getStaffForUser(
   connection: typeof db | Transaction = db,
   lock = false,
 ) {
+  // The trusted operator script locks this account before changing staff rights.
+  // Lock it first, then read permission in a fresh statement. This serializes
+  // revocation without granting the app UPDATE on platform_staff.
+  if (lock)
+    await connection
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, userId))
+      .for("share");
   const query = connection
     .select({ userId: platformStaff.userId, role: platformStaff.role })
     .from(platformStaff)
@@ -19,6 +28,6 @@ export async function getStaffForUser(
         isNull(users.deletedAt),
       ),
     );
-  const [staff] = await (lock ? query.for("share") : query);
+  const [staff] = await query;
   return staff ?? null;
 }

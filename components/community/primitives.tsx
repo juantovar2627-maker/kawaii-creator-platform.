@@ -58,7 +58,7 @@ export function CreatorAvatar({
       className={`creator-avatar avatar-${size}`}
       style={{
         backgroundImage:
-          "url(/_next/image?url=%2Fimages%2Fmimi-hero.png&w=1080&q=75)",
+          "url(/images/mimi-hero.png)",
         backgroundPosition: creator.portrait,
         backgroundColor: creator.color,
       }}

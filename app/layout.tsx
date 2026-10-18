@@ -7,9 +7,9 @@ import { PaymentsProvider } from "@/components/payments-provider";
 import { isPaymentsEnabled } from "@/lib/payments/config";
 import { DemoProvider } from "@/components/community/demo-provider";
 import { brand } from "@/lib/brand";
+import { appMode } from "@/lib/config/runtime";
 import { publicUser } from "@/lib/auth/public-user";
 
-export const experimental_ppr = true;
 
 export const metadata: Metadata = {
   title: {
@@ -38,6 +38,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={manrope.className}>
       <body>
+        {appMode() === "staging" && <aside className="staging-indicator" aria-label="Private staging environment">Private staging · synthetic test data only · payments and uploads disabled by default</aside>}
         <SessionDataProvider
           key={user?.id ?? "anonymous"}
           fallback={{
