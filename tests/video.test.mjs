@@ -13,6 +13,7 @@ import {
   mkdir,
 } from "node:fs/promises";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { createServer } from "node:https";
 import postgres from "postgres";
 import { SignJWT } from "jose";
@@ -38,7 +39,7 @@ test(
       ids = [],
       cookies = [],
       workerIds = new Set();
-    const tmp = await mkdtemp("/workspace/.cloud-onboarding/video-test-"),
+    const tmp = await mkdtemp(join(tmpdir(), "video-test-")),
       username = "reel_" + tag;
     let postId,
       mainAsset,
