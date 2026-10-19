@@ -40,7 +40,7 @@ async function main() {
         "-subj",
         "/CN=localhost",
         "-addext",
-        "subjectAltName=DNS:localhost,IP:127.0.0.1",
+        "subjectAltName=DNS:localhost,DNS:postgres,IP:127.0.0.1",
       ],
       { stdio: "ignore" },
     );
@@ -90,6 +90,12 @@ async function main() {
       NODE_EXTRA_CA_CERTS: cert,
     };
     const path = join(root, "staging.env");
+    for (const name of [
+      "AUTH_SECRET",
+      "STAGING_ACCESS_PASSWORD",
+      "HEALTHCHECK_TOKEN",
+    ])
+      console.log(`::add-mask::${env[name]}`);
     await writeFile(
       path,
       Object.entries(env)

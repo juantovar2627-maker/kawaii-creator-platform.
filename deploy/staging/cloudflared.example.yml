@@ -1,0 +1,14 @@
+# Copy outside the checkout and fill only after operator approval.
+tunnel: REPLACE_WITH_REVIEWED_TUNNEL_UUID
+credentials-file: /etc/cloudflared/credentials.json
+ingress:
+  - hostname: staging.example.invalid
+    service: http://proxy:8080
+    originRequest:
+      httpHostHeader: staging.example.invalid
+      access:
+        required: true
+        teamName: REPLACE_WITH_ACCESS_TEAM
+        audTag:
+          - REPLACE_WITH_EXACT_ACCESS_APPLICATION_AUDIENCE
+  - service: http_status:404

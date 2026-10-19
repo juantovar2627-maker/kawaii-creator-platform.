@@ -27,6 +27,11 @@ restricted health checks and disposable GitHub Actions CI. Start with
 private hosting. `pnpm config:check` validates names/settings without printing
 values. No hosting resources or payments are enabled by these changes.
 
+[Phase 4B](docs/phase-four-b.md) packages the text-only private staging app in a
+pinned non-root container, with operator database grants, synthetic tester tools,
+an access-gated tunnel/proxy template and reusable staging smoke checks. Release
+commands are manual; CI builds and tests without deploying or pushing images.
+
 Authentication, PostgreSQL, account settings, and payment-disabled safeguards
 are retained. Apply the additive migrations with `pnpm db:migrate` against your
 development database. Creator profiles and social interactions are real; the six fictional creators

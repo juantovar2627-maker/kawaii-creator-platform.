@@ -1,6 +1,7 @@
 import "server-only";
 import postgres from "postgres";
-export const databaseRoleQuery = `select r.rolsuper or r.rolcreatedb or r.rolcreaterole or r.rolbypassrls or has_database_privilege(current_user,current_database(),'CREATE') or has_table_privilege(current_user,'platform_staff','INSERT,UPDATE,DELETE') or has_table_privilege(current_user,'moderation_audit','UPDATE,DELETE') or exists(select 1 from pg_class c where c.relnamespace='public'::regnamespace and c.relowner=r.oid) as unsafe from pg_roles r where r.rolname=current_user`;
+import { databaseRoleQuery } from "./database-role-query.mjs";
+export { databaseRoleQuery };
 export async function assertApplicationDatabaseRole() {
   const sql = postgres(process.env.POSTGRES_URL!, {
     max: 1,

@@ -50,7 +50,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf 'AUTH_SECRET=%s\n' "$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          auth_secret="$(openssl rand -hex 32)"
+          printf '::add-mask::%s\n' "$auth_secret"
+          printf 'AUTH_SECRET=%s\n' "$auth_secret" >> "$GITHUB_ENV"
           printf 'MEDIA_LOCAL_ROOT=%s\nVIDEO_WORK_ROOT=%s\n' "$RUNNER_TEMP/mimi-media" "$RUNNER_TEMP/mimi-video-work" >> "$GITHUB_ENV"
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg bubblewrap util-linux openssl
@@ -94,19 +96,42 @@ jobs:
           echo 'Staging runtime failed its expected access-denial check.'
           exit 1
       - name: Full unit and PostgreSQL/media/payment regression suite
-        run: node --test --test-concurrency=1 tests/*.test.mjs
+        run: node scripts/ci-run.mjs node --test --test-concurrency=1 tests/*.test.mjs
       - name: Install Chromium for browser checks
         run: pnpm exec playwright install --with-deps chromium
       - name: Authentication, demo, mobile and private staging browser checks
         env:
           TEST_ARTIFACT_DIR: ${{ runner.temp }}/mimi-browser
-        run: pnpm test:browser
-      - name: Upload synthetic server log on failure
+        run: node scripts/ci-run.mjs pnpm test:browser
+      - name: Prepare isolated synthetic staging smoke accounts
+        run: node scripts/prepare-staging-smoke.mjs
+      - name: Start loopback synthetic staging ingress for browser smoke
+        env:
+          STAGING_SMOKE_FIXTURE: "true"
+        run: |
+          node scripts/staging-smoke-proxy.mjs > "$RUNNER_TEMP/mimi-smoke-proxy.log" 2>&1 &
+          for attempt in {1..20}; do
+            if [ "$(curl --silent --output /dev/null --write-out '%{http_code}' "$STAGING_SMOKE_ALLOWED_ORIGIN/api/health")" = 401 ]; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Real text-only private staging smoke and accessibility
+        env:
+          STAGING_SMOKE_FIXTURE: "true"
+        run: node scripts/ci-run.mjs node scripts/staging-smoke.cjs
+      - name: Build the deployment container without runtime secrets
+        run: docker build --tag mimi:ci .
+      - name: Check non-root runtime and native Sharp
+        run: |
+          docker run --rm --entrypoint node mimi:ci -e 'if(process.getuid()===0)process.exit(1);require("sharp")({create:{width:1,height:1,channels:3,background:"pink"}}).webp().toBuffer().then(b=>{if(!b.length)process.exit(1)})'
+      - name: Report bounded server status on failure
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: mimi-failure-log
-          path: |
-            ${{ runner.temp }}/mimi-server.log
-            ${{ runner.temp }}/mimi-staging-server.log
-          retention-days: 3
+        run: |
+          node --input-type=module <<'JS'
+          import {readFile} from 'node:fs/promises';
+          import {join} from 'node:path';
+          for(const name of ['mimi-server.log','mimi-staging-server.log']) {
+            const text=await readFile(join(process.env.RUNNER_TEMP,name),'utf8').catch(()=> '');
+            console.log(JSON.stringify({service:name,logPresent:!!text,readySeen:/Ready in/.test(text),configurationRejected:/Invalid runtime configuration|database security verification failed/.test(text)}));
+          }
+          JS

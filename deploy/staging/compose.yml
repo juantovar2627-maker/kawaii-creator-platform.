@@ -1,0 +1,82 @@
+name: mimi-private-staging
+services:
+  app:
+    image: ${MIMI_IMAGE:?Set an operator-reviewed image digest}
+    init: true
+    env_file:
+      - ${STAGING_RUNTIME_ENV_FILE:?Use an absolute private env-file path}
+    environment:
+      APP_ENV: staging
+      NODE_ENV: production
+      PORT: "3000"
+      PAYMENTS_ENABLED: "false"
+      SIGNUP_ENABLED: "false"
+      MEDIA_UPLOADS_ENABLED: "false"
+      VIDEO_UPLOADS_ENABLED: "false"
+      VIDEO_WORKER_ENABLED: "false"
+      NODE_EXTRA_CA_CERTS: /run/mimi/database-ca.pem
+    volumes:
+      - ${DATABASE_CA_FILE:?Absolute trusted database CA bundle path}:/run/mimi/database-ca.pem:ro
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,uid=1000,gid=1000
+      - /app/.next/cache:rw,noexec,nosuid,size=128m,uid=1000,gid=1000
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: 2
+    mem_limit: 2g
+    pids_limit: 128
+    stop_grace_period: 45s
+    networks: [application]
+    logging: &logs
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+  proxy:
+    image: nginxinc/nginx-unprivileged:stable-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
+    environment:
+      STAGING_HOSTNAME: ${STAGING_HOSTNAME:?Set the canonical HTTPS hostname}
+      NGINX_ENVSUBST_FILTER: STAGING_HOSTNAME
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,uid=101,gid=101
+      - /etc/nginx/conf.d:rw,noexec,nosuid,size=1m,uid=101,gid=101
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 32
+    depends_on:
+      app: { condition: service_healthy }
+    networks:
+      application: {}
+      tunnel: { ipv4_address: 172.30.44.3 }
+    logging: *logs
+  tunnel:
+    image: cloudflare/cloudflared:latest@sha256:a15a3b50b8dabd57ac2090e9484c0247dba9dfa1f0df4d298d4317f9d69eb2d5
+    command:
+      [tunnel, --no-autoupdate, --config, /etc/cloudflared/config.yml, run]
+    volumes:
+      - ${TUNNEL_CONFIG_FILE:?Absolute reviewed tunnel YAML path}:/etc/cloudflared/config.yml:ro
+      - ${TUNNEL_CREDENTIALS_FILE:?Absolute private tunnel credential path}:/etc/cloudflared/credentials.json:ro
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+    cpus: 0.5
+    mem_limit: 256m
+    pids_limit: 128
+    networks:
+      tunnel: { ipv4_address: 172.30.44.2 }
+    logging: *logs
+# No service publishes a host port. Only the tunnel joins the proxy ingress net.
+# App can reach a separately restricted TLS DB; do not attach untrusted containers.
+networks:
+  application: {}
+  tunnel:
+    ipam:
+      config: [{ subnet: 172.30.44.0/28 }]
