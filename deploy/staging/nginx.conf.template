@@ -1,0 +1,31 @@
+# Accessible only from the dedicated cloudflared peer. Do not publish this port.
+server {
+    listen 8080 default_server;
+    server_name ${STAGING_HOSTNAME};
+    access_log off;
+    error_log /dev/stderr crit;
+    server_tokens off;
+    client_max_body_size 64k;
+    client_body_timeout 15s;
+    set_real_ip_from 172.30.44.2;
+    real_ip_header CF-Connecting-IP;
+    real_ip_recursive off;
+    if ($realip_remote_addr != 172.30.44.2) { return 403; }
+    if ($remote_addr = 172.30.44.2) { return 403; }
+    if ($host != "${STAGING_HOSTNAME}") { return 403; }
+    location / {
+        proxy_pass http://app:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host ${STAGING_HOSTNAME};
+        proxy_set_header X-Forwarded-Host ${STAGING_HOSTNAME};
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Mimi-Client-IP $remote_addr;
+        proxy_set_header X-Forwarded-For "";
+        proxy_set_header Forwarded "";
+        proxy_set_header Connection "";
+        proxy_cache off;
+        proxy_buffering off;
+        proxy_read_timeout 60s;
+        proxy_send_timeout 30s;
+    }
+}

@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { writeFileSync, rmSync } from "node:fs";
 import { assertConfiguration, appMode, loopback } from "../lib/config/runtime";
 import { assertApplicationDatabaseRole } from "../lib/ops/database-role";
 async function main() {
@@ -20,6 +21,14 @@ async function main() {
     if (hosts.some((host) => !loopback(host)))
       throw new Error("Development serving requires a loopback bind.");
     if (!hosts.length) args.push("--hostname", "127.0.0.1");
+  }
+  // Private container supervisor forwards signals here rather than terminating pnpm.
+  if (process.env.MIMI_CONTAINER_PID_FILE === "/tmp/mimi-start.pid") {
+    writeFileSync("/tmp/mimi-start.pid", String(process.pid), {
+      mode: 0o600,
+      flag: "wx",
+    });
+    process.on("exit", () => rmSync("/tmp/mimi-start.pid", { force: true }));
   }
   const child = spawn(
     process.execPath,

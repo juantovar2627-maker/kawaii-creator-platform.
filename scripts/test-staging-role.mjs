@@ -17,6 +17,8 @@ async function main() {
   const sql = postgres(url.toString());
   const role = "mimi_test_app_" + randomBytes(6).toString("hex"),
     password = randomBytes(32).toString("hex");
+  if (process.env.GITHUB_ACTIONS === "true")
+    console.log(`::add-mask::${password}`);
   try {
     await sql.unsafe(
       `CREATE ROLE "${role}" LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS`,

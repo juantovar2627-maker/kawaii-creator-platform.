@@ -1,0 +1,31 @@
+# Allow only build source and runtime entrypoint/probe scripts.
+**
+!app/
+!app/**
+!components/
+!components/**
+!lib/
+!lib/**
+!public/
+!public/**
+!scripts/
+!scripts/start.ts
+!scripts/check-config.ts
+!scripts/container-health.mjs
+!scripts/container-entrypoint.mjs
+!package.json
+!pnpm-lock.yaml
+!next.config.ts
+!tsconfig.json
+!postcss.config.mjs
+!instrumentation.ts
+!middleware.ts
+# Defense in depth for private material accidentally placed under source paths.
+**/.env*
+**/*.pem
+**/*.key
+**/*.crt
+**/*credentials*.json
+**/*secrets*.json
+**/smoke*.json
+**/testers*.json
